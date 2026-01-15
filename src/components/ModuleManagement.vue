@@ -21,11 +21,6 @@
       @confirm="handleDialogConfirm"
     />
 
-    <ModuleViewDialog
-      v-model="viewDialogVisible"
-      :module="currentModule"
-    />
-
     <ModuleUploadDialog
       v-model="uploadDialogVisible"
       :module="currentModule"
@@ -40,12 +35,10 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import ModuleTable from './ModuleTable.vue'
 import ModuleDialog from './ModuleDialog.vue'
-import ModuleViewDialog from './ModuleViewDialog.vue'
 import ModuleUploadDialog from './ModuleUploadDialog.vue'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
-const viewDialogVisible = ref(false)
 const uploadDialogVisible = ref(false)
 const dialogMode = ref('add')
 const currentModule = ref(null)
@@ -170,9 +163,7 @@ const handleAdd = () => {
     name: '',
     category: 'portal',
     version: '1.0.0',
-    file: '',
     type: 'component',
-    tab: 'portal',
     entry: false,
     created_at: '',
     created_by: '',
@@ -210,6 +201,11 @@ const handleDelete = (module) => {
 }
 
 const handleDialogConfirm = (formData) => {
+  if (dialogMode.value === 'view') {
+    dialogVisible.value = false
+    return
+  }
+
   const now = new Date().toLocaleString('zh-CN', {
     year: 'numeric',
     month: '2-digit',
@@ -246,14 +242,7 @@ const handleDialogConfirm = (formData) => {
   dialogVisible.value = false
 }
 
-const handleUpdateEntry = (module) => {
-  const index = modules.value.findIndex(m => m.id === module.id)
-  if (index > -1) {
-    modules.value[index].entry = true
-    saveModules()
-    ElMessage.success('Entry enabled')
-  }
-}
+
 
 const handleBatchDelete = (selectedRows) => {
   ElMessageBox.confirm(
@@ -275,8 +264,9 @@ const handleBatchDelete = (selectedRows) => {
 }
 
 const handleView = (module) => {
+  dialogMode.value = 'view'
   currentModule.value = { ...module }
-  viewDialogVisible.value = true
+  dialogVisible.value = true
 }
 
 const handleUploadFile = (module) => {

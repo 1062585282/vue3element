@@ -1,22 +1,22 @@
 <template>
   <el-dialog
     v-model="visible"
-    :title="mode === 'add' ? 'Add Module' : 'Edit Module'"
+    :title="dialogTitle"
     width="600px"
     @close="handleClose"
   >
     <el-form
       ref="formRef"
       :model="formData"
-      :rules="rules"
+      :rules="isViewMode ? {} : rules"
       label-width="120px"
     >
       <el-form-item label="Module Name" prop="name">
-        <el-input v-model="formData.name" placeholder="Please enter module name" />
+        <el-input v-model="formData.name" :disabled="isViewMode" />
       </el-form-item>
 
       <el-form-item label="Category" prop="category">
-        <el-select v-model="formData.category" placeholder="Please select category" style="width: 100%">
+        <el-select v-model="formData.category" :disabled="isViewMode" style="width: 100%">
           <el-option label="Portal" value="portal" />
           <el-option label="Admin Center" value="admin_center" />
           <el-option label="Workstation" value="workstation" />
@@ -24,25 +24,41 @@
       </el-form-item>
 
       <el-form-item label="Type" prop="type">
-        <el-select v-model="formData.type" placeholder="Please select type" style="width: 100%">
+        <el-select v-model="formData.type" :disabled="isViewMode" style="width: 100%">
           <el-option label="Component" value="component" />
           <el-option label="Lib" value="lib" />
         </el-select>
       </el-form-item>
 
       <el-form-item label="Version" prop="version">
-        <el-input v-model="formData.version" placeholder="Please enter version" />
+        <el-input v-model="formData.version" :disabled="isViewMode" />
       </el-form-item>
 
       <el-form-item label="Entry" prop="entry">
-        <el-switch v-model="formData.entry" />
+        <el-switch v-model="formData.entry" :disabled="isViewMode" />
+      </el-form-item>
+
+      <el-form-item label="Created At" v-if="isViewMode">
+        <el-input v-model="formData.created_at" disabled />
+      </el-form-item>
+
+      <el-form-item label="Created By" v-if="isViewMode">
+        <el-input v-model="formData.created_by" disabled />
+      </el-form-item>
+
+      <el-form-item label="Updated At" v-if="isViewMode">
+        <el-input v-model="formData.updated_at" disabled />
+      </el-form-item>
+
+      <el-form-item label="Updated By" v-if="isViewMode">
+        <el-input v-model="formData.updated_by" disabled />
       </el-form-item>
     </el-form>
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="handleClose">Cancel</el-button>
-        <el-button type="primary" @click="handleConfirm">Confirm</el-button>
+        <el-button @click="handleClose">{{ isViewMode ? 'Close' : 'Cancel' }}</el-button>
+        <el-button type="primary" @click="handleConfirm" v-if="!isViewMode">Confirm</el-button>
       </div>
     </template>
   </el-dialog>
@@ -75,7 +91,11 @@ const formData = ref({
   category: '',
   version: '',
   type: '',
-  entry: false
+  entry: false,
+  created_at: '',
+  created_by: '',
+  updated_at: '',
+  updated_by: ''
 })
 
 const rules = {
@@ -98,6 +118,14 @@ const visible = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+const isViewMode = computed(() => props.mode === 'view')
+
+const dialogTitle = computed(() => {
+  if (props.mode === 'view') return 'Module Details'
+  if (props.mode === 'add') return 'Add Module'
+  return 'Edit Module'
+})
+
 watch(() => props.module, (newVal) => {
   if (newVal) {
     formData.value = {
@@ -106,7 +134,11 @@ watch(() => props.module, (newVal) => {
       category: newVal.category || '',
       version: newVal.version || '',
       type: newVal.type || '',
-      entry: typeof newVal.entry === 'boolean' ? newVal.entry : false
+      entry: typeof newVal.entry === 'boolean' ? newVal.entry : false,
+      created_at: newVal.created_at || '',
+      created_by: newVal.created_by || '',
+      updated_at: newVal.updated_at || '',
+      updated_by: newVal.updated_by || ''
     }
   }
 }, { immediate: true, deep: true })
