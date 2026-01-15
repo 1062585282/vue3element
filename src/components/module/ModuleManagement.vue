@@ -36,6 +36,8 @@ import { Plus } from '@element-plus/icons-vue'
 import ModuleTable from './ModuleTable.vue'
 import ModuleDialog from './ModuleDialog.vue'
 import ModuleUploadDialog from './ModuleUploadDialog.vue'
+import { get, post } from '../../utils/request.js'
+import { DEFAULT_MODULES } from '../../constants/mockData.js'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -45,115 +47,26 @@ const currentModule = ref(null)
 
 const modules = ref([])
 
-const generateId = () => {
-  return 'module_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-}
-
 const getCurrentUser = () => {
   return 'admin'
 }
 
-const loadModules = () => {
+const loadModules = async () => {
   loading.value = true
-  setTimeout(() => {
-    const storedModules = localStorage.getItem('modules')
-    if (storedModules) {
-      modules.value = JSON.parse(storedModules)
+  try {
+    const data = await get('/modules')
+    if (data && data.length > 0) {
+      modules.value = data
     } else {
-      modules.value = [
-        {
-          id: 'module_001',
-          name: 'User Management',
-          category: 'portal',
-          version: '1.0.0',
-          file: 'user-management.js',
-          type: 'component',
-          tab: 'portal',
-          entry: false,
-          created_at: '2024-01-01 10:00:00',
-          created_by: 'admin',
-          updated_at: '2024-01-01 10:00:00',
-          updated_by: 'admin'
-        },
-        {
-          id: 'module_002',
-          name: 'Statistics',
-          category: 'portal',
-          version: '1.2.0',
-          file: 'statistics.js',
-          type: 'lib',
-          tab: 'portal',
-          entry: false,
-          created_at: '2024-01-02 14:30:00',
-          created_by: 'admin',
-          updated_at: '2024-01-05 09:15:00',
-          updated_by: 'admin'
-        },
-        {
-          id: 'module_003',
-          name: 'System Configuration',
-          category: 'admin_center',
-          version: '2.0.0',
-          file: 'system-config.js',
-          type: 'component',
-          tab: 'admin_center',
-          entry: true,
-          created_at: '2024-01-03 11:20:00',
-          created_by: 'admin',
-          updated_at: '2024-01-10 16:45:00',
-          updated_by: 'admin'
-        },
-        {
-          id: 'module_004',
-          name: 'Permission Management',
-          category: 'admin_center',
-          version: '1.5.0',
-          file: 'permission.js',
-          type: 'lib',
-          tab: 'admin_center',
-          entry: false,
-          created_at: '2024-01-04 08:00:00',
-          created_by: 'admin',
-          updated_at: '2024-01-08 13:20:00',
-          updated_by: 'admin'
-        },
-        {
-          id: 'module_005',
-          name: 'Workstation',
-          category: 'workstation',
-          version: '1.0.0',
-          file: 'workstation.js',
-          type: 'component',
-          tab: 'workstation',
-          entry: true,
-          created_at: '2024-01-05 15:30:00',
-          created_by: 'admin',
-          updated_at: '2024-01-05 15:30:00',
-          updated_by: 'admin'
-        },
-        {
-          id: 'module_006',
-          name: 'Utility Functions',
-          category: 'workstation',
-          version: '1.3.0',
-          file: 'utils.js',
-          type: 'lib',
-          tab: 'workstation',
-          entry: false,
-          created_at: '2024-01-06 09:00:00',
-          created_by: 'admin',
-          updated_at: '2024-01-12 10:30:00',
-          updated_by: 'admin'
-        }
-      ]
-      saveModules()
+      console.log('No data from API, using default modules')
+      modules.value = DEFAULT_MODULES
     }
+  } catch (error) {
+    console.log('API call failed, using default modules:', error)
+    modules.value = DEFAULT_MODULES
+  } finally {
     loading.value = false
-  }, 500)
-}
-
-const saveModules = () => {
-  localStorage.setItem('modules', JSON.stringify(modules.value))
+  }
 }
 
 const handleAdd = () => {
@@ -179,88 +92,100 @@ const handleEdit = (module) => {
   dialogVisible.value = true
 }
 
-const handleDelete = (module) => {
-  ElMessageBox.confirm(
-    `Are you sure you want to delete module "${module.name}"?`,
-    'Delete Confirmation',
-    {
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      type: 'warning'
-    }
-  ).then(() => {
+const handleDelete = async (module) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete module "${module.name}"?`,
+      'Delete Confirmation',
+      {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }
+    )
+    await post(`/modules/${module.id}/delete`)
     const index = modules.value.findIndex(m => m.id === module.id)
     if (index > -1) {
       modules.value.splice(index, 1)
-      saveModules()
       ElMessage.success('Deleted successfully')
     }
-  }).catch(() => {
-    ElMessage.info('Deletion cancelled')
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to delete module:', error)
+      ElMessage.error('Failed to delete module')
+    }
+  }
 }
 
-const handleDialogConfirm = (formData) => {
+const handleDialogConfirm = async (formData) => {
   if (dialogMode.value === 'view') {
     dialogVisible.value = false
     return
   }
 
-  const now = new Date().toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).replace(/\//g, '-')
+  try {
+    const now = new Date().toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-')
 
-  if (dialogMode.value === 'add') {
-    const newModule = {
-      ...formData,
-      id: generateId(),
-      created_at: now,
-      created_by: getCurrentUser(),
-      updated_at: now,
-      updated_by: getCurrentUser()
-    }
-    modules.value.push(newModule)
-    ElMessage.success('Added successfully')
-  } else {
-    const index = modules.value.findIndex(m => m.id === formData.id)
-    if (index > -1) {
-      modules.value[index] = {
+    if (dialogMode.value === 'add') {
+      const newModule = await post('/modules', {
+        ...formData,
+        created_at: now,
+        created_by: getCurrentUser(),
+        updated_at: now,
+        updated_by: getCurrentUser()
+      })
+      modules.value.push(newModule)
+      ElMessage.success('Added successfully')
+    } else {
+      const updatedModule = await post(`/modules/${formData.id}`, {
         ...formData,
         updated_at: now,
         updated_by: getCurrentUser()
+      })
+      const index = modules.value.findIndex(m => m.id === formData.id)
+      if (index > -1) {
+        modules.value[index] = updatedModule
+        ElMessage.success('Updated successfully')
       }
-      ElMessage.success('Updated successfully')
     }
+    dialogVisible.value = false
+  } catch (error) {
+    console.error('Failed to save module:', error)
+    ElMessage.error('Failed to save module')
   }
-  saveModules()
-  dialogVisible.value = false
 }
 
 
 
-const handleBatchDelete = (selectedRows) => {
-  ElMessageBox.confirm(
-    `Are you sure you want to delete ${selectedRows.length} module(s)?`,
-    'Delete Confirmation',
-    {
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      type: 'warning'
-    }
-  ).then(() => {
+const handleBatchDelete = async (selectedRows) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete ${selectedRows.length} module(s)?`,
+      'Delete Confirmation',
+      {
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }
+    )
     const idsToDelete = selectedRows.map(row => row.id)
+    await post('/modules/batch-delete', { ids: idsToDelete })
     modules.value = modules.value.filter(m => !idsToDelete.includes(m.id))
-    saveModules()
     ElMessage.success(`Deleted ${selectedRows.length} module(s) successfully`)
-  }).catch(() => {
-    ElMessage.info('Deletion cancelled')
-  })
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('Failed to batch delete modules:', error)
+      ElMessage.error('Failed to delete modules')
+    }
+  }
 }
 
 const handleView = (module) => {
@@ -274,10 +199,8 @@ const handleUploadFile = (module) => {
   uploadDialogVisible.value = true
 }
 
-const handleUploadConfirm = (data) => {
-  const index = modules.value.findIndex(m => m.id === data.module.id)
-  if (index > -1) {
-    modules.value[index].file = data.fileName
+const handleUploadConfirm = async (data) => {
+  try {
     const now = new Date().toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
@@ -287,10 +210,21 @@ const handleUploadConfirm = (data) => {
       second: '2-digit',
       hour12: false
     }).replace(/\//g, '-')
-    modules.value[index].updated_at = now
-    modules.value[index].updated_by = getCurrentUser()
-    saveModules()
-    ElMessage.success('File uploaded successfully')
+
+    const updatedModule = await post(`/modules/${data.module.id}/upload`, {
+      file: data.fileName,
+      updated_at: now,
+      updated_by: getCurrentUser()
+    })
+
+    const index = modules.value.findIndex(m => m.id === data.module.id)
+    if (index > -1) {
+      modules.value[index] = updatedModule
+      ElMessage.success('File uploaded successfully')
+    }
+  } catch (error) {
+    console.error('Failed to upload file:', error)
+    ElMessage.error('Failed to upload file')
   }
 }
 
