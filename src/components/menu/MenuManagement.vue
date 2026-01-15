@@ -25,7 +25,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import MenuTree from './MenuTree.vue'
 import MenuForm from './MenuForm.vue'
-import { get, post } from '../utils/request.js'
+import { get, post } from '../../utils/request.js'
 
 const currentMenu = ref(null)
 const menus = ref([])

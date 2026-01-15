@@ -13,8 +13,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import ModuleManagement from './components/ModuleManagement.vue'
-import MenuManagement from './components/MenuManagement.vue'
+import ModuleManagement from './components/module/ModuleManagement.vue'
+import MenuManagement from './components/menu/MenuManagement.vue'
 
 const activeTab = ref('menu')
 </script>
