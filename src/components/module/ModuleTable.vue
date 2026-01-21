@@ -35,8 +35,8 @@
       </el-table-column>
       <el-table-column prop="type" label="Type" min-width="100">
         <template #default="{ row }">
-          <el-tag :type="row.type === 'component' ? 'success' : 'info'">
-            {{ row.type === 'component' ? 'Component' : 'Lib' }}
+          <el-tag :type="row.type === 1 ? 'success' : 'info'">
+            {{ row.type === 1 ? 'Component' : 'Lib' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -79,7 +79,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Refresh, Edit, Delete, Plus, View, Upload } from '@element-plus/icons-vue'
+import { RefreshRight as Refresh, Edit, Delete, Plus, View, Upload } from '@element-plus/icons-vue'
 
 defineProps({
   modules: {
@@ -102,7 +102,7 @@ const handleSelectionChange = (selection) => {
 
 const handleBatchDelete = () => {
   if (selectedRows.value.length > 0) {
-    emit('batch-delete', selectedRows.value)
+    $emit('batch-delete', selectedRows.value)
   }
 }
 

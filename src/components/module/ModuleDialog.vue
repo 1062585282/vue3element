@@ -25,8 +25,8 @@
 
       <el-form-item label="Type" prop="type">
         <el-select v-model="formData.type" :disabled="isViewMode" style="width: 100%">
-          <el-option label="Component" value="component" />
-          <el-option label="Lib" value="lib" />
+          <el-option label="Component" :value="1" />
+          <el-option label="Lib" :value="2" />
         </el-select>
       </el-form-item>
 

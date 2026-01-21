@@ -7,6 +7,12 @@
       <el-tab-pane label="Menu Management" name="menu">
         <MenuManagement />
       </el-tab-pane>
+      <el-tab-pane label="Form Design" name="form-design">
+        <FormDesign />
+      </el-tab-pane>
+      <el-tab-pane label="Staff Management" name="staff-management">
+        <StaffManagement />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -15,6 +21,8 @@
 import { ref } from 'vue'
 import ModuleManagement from './components/module/ModuleManagement.vue'
 import MenuManagement from './components/menu/MenuManagement.vue'
+import FormDesign from './components/unit/FormDesign.vue'
+import StaffManagement from './components/unit/StaffManagement.vue'
 
 const activeTab = ref('menu')
 </script>

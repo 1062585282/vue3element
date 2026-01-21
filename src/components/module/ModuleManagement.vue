@@ -54,15 +54,11 @@ const getCurrentUser = () => {
 const loadModules = async () => {
   loading.value = true
   try {
-    const data = await get('/modules')
-    if (data && data.length > 0) {
-      modules.value = data
-    } else {
-      console.log('No data from API, using default modules')
-      modules.value = DEFAULT_MODULES
-    }
+    // 直接使用模拟数据，不调用API
+    modules.value = DEFAULT_MODULES
+    console.log('Using default modules data')
   } catch (error) {
-    console.log('API call failed, using default modules:', error)
+    console.log('Error loading modules:', error)
     modules.value = DEFAULT_MODULES
   } finally {
     loading.value = false
@@ -76,7 +72,7 @@ const handleAdd = () => {
     name: '',
     category: 'portal',
     version: '1.0.0',
-    type: 'component',
+    type: 1,
     entry: false,
     created_at: '',
     created_by: '',
@@ -211,17 +207,28 @@ const handleUploadConfirm = async (data) => {
       hour12: false
     }).replace(/\//g, '-')
 
-    const updatedModule = await post(`/modules/${data.module.id}/upload`, {
+    // 模拟文件上传API调用
+    console.log('Uploading file:', data.fileName, 'for module:', data.module.id)
+    
+    // 模拟API延迟
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 模拟成功响应
+    const updatedModule = {
+      ...data.module,
       file: data.fileName,
       updated_at: now,
       updated_by: getCurrentUser()
-    })
-
+    }
+    
+    // 更新本地数据
     const index = modules.value.findIndex(m => m.id === data.module.id)
     if (index > -1) {
       modules.value[index] = updatedModule
       ElMessage.success('File uploaded successfully')
     }
+    
+    console.log('File uploaded successfully:', updatedModule)
   } catch (error) {
     console.error('Failed to upload file:', error)
     ElMessage.error('Failed to upload file')

@@ -1,17 +1,14 @@
 <template>
   <div class="menu-tree">
     <div class="tree-header">
-      <el-button :icon="Refresh" @click="handleRefresh">Refresh</el-button>
+      <el-select v-model="selectedCategory" placeholder="Select Category" style="width: 200px;">
+        <el-option label="portal" value="portal" />
+        <el-option label="admin-center" value="admin-center" />
+        <el-option label="workstation" value="workstation" />
+      </el-select>
       <div class="header-right">
+        <el-button :icon="Refresh" @click="handleRefresh">Refresh</el-button>
         <el-button type="primary" :icon="Plus" @click="handleAdd">Add</el-button>
-        <el-button 
-          type="danger" 
-          :icon="Delete" 
-          :disabled="!currentMenu"
-          @click="handleDelete"
-        >
-          Delete
-        </el-button>
       </div>
     </div>
     <el-tree
@@ -19,8 +16,9 @@
       :data="menus"
       :props="defaultProps"
       node-key="id"
-      :expand-on-click-node="false"
+      :expand-on-click-node="true"
       :highlight-current="true"
+      :default-expand-all="true"
       @node-click="handleNodeClick"
       class="menu-tree-component"
     >
@@ -29,7 +27,7 @@
           <el-icon v-if="data.icon" :size="16" class="node-icon">
             <component :is="data.icon" />
           </el-icon>
-          <span class="node-label">{{ data.name }}</span>
+          <span class="node-label">{{ data.text }}</span>
         </span>
       </template>
     </el-tree>
@@ -37,8 +35,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Refresh, Delete, Plus } from '@element-plus/icons-vue'
+import { ref, watch } from 'vue'
+import { RefreshRight as Refresh, Plus } from '@element-plus/icons-vue'
 
 const props = defineProps({
   menus: {
@@ -51,13 +49,18 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['refresh', 'add', 'delete', 'node-click'])
+const emit = defineEmits(['refresh', 'add', 'node-click', 'update:selectedCategory'])
 
 const treeRef = ref(null)
+const selectedCategory = ref('')
+
+watch(selectedCategory, (newVal) => {
+  emit('update:selectedCategory', newVal)
+})
 
 const defaultProps = {
   children: 'children',
-  label: 'name'
+  label: 'text'
 }
 
 const handleRefresh = () => {
@@ -66,10 +69,6 @@ const handleRefresh = () => {
 
 const handleAdd = () => {
   emit('add')
-}
-
-const handleDelete = () => {
-  emit('delete')
 }
 
 const handleNodeClick = (data) => {

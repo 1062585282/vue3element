@@ -5,9 +5,9 @@
         <MenuTree 
           :menus="menus" 
           :current-menu="currentMenu"
+          v-model:selectedCategory="selectedCategory"
           @refresh="loadMenus"
           @add="handleAdd"
-          @delete="handleDelete"
           @node-click="handleNodeClick"
         />
         <MenuForm 
@@ -30,57 +30,16 @@ import { DEFAULT_MENUS } from '../../constants/mockData.js'
 
 const currentMenu = ref(null)
 const menus = ref([])
+const selectedCategory = ref('portal')
 
 const loadMenus = async () => {
   try {
-    const data = await get('/menus')
-    if (data && data.length > 0) {
-      menus.value = data
-    } else {
-      console.log('No data from API, using default menus')
-      menus.value = DEFAULT_MENUS
-    }
-  } catch (error) {
-    console.log('API call failed, using default menus:', error)
+    // 直接使用模拟数据，不调用API
     menus.value = DEFAULT_MENUS
-  }
-}
-
-const findAndDelete = (items, menuId) => {
-  for (let i = items.length - 1; i >= 0; i--) {
-    if (items[i].id === menuId) {
-      items.splice(i, 1)
-      return true
-    }
-    if (items[i].children && findAndDelete(items[i].children, menuId)) {
-      return true
-    }
-  }
-  return false
-}
-
-const checkMenuChildren = (menuId) => {
-  const check = (items) => {
-    for (const item of items) {
-      if (item.id === menuId && item.children && item.children.length > 0) {
-        return true
-      }
-      if (item.children && check(item.children)) {
-        return true
-      }
-    }
-    return false
-  }
-  return check(menus.value)
-}
-
-const deleteMenu = async (menuId) => {
-  try {
-    await post(`/menus/${menuId}/delete`)
-    findAndDelete(menus.value, menuId)
+    console.log('Using default menus data')
   } catch (error) {
-    console.error('Failed to delete menu:', error)
-    ElMessage.error('Failed to delete menu')
+    console.log('Error loading menus:', error)
+    menus.value = DEFAULT_MENUS
   }
 }
 
@@ -146,38 +105,13 @@ const handleAdd = () => {
     parent_id: 'root',
     name: '',
     module: '',
+    category: selectedCategory.value || 'portal', // 使用选择的category或默认值
     text: '',
     link: '',
     active: true,
     seq: 1,
     icon: ''
   }
-}
-
-const handleDelete = () => {
-  if (!currentMenu.value) return
-
-  const hasChildren = checkMenuChildren(currentMenu.value.id)
-  if (hasChildren) {
-    ElMessage.warning('Cannot delete menu with children. Please delete children first.')
-    return
-  }
-
-  ElMessageBox.confirm(
-    `Are you sure you want to delete menu "${currentMenu.value.name}"?`,
-    'Delete Confirmation',
-    {
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      type: 'warning'
-    }
-  ).then(() => {
-    deleteMenu(currentMenu.value.id)
-    currentMenu.value = null
-    ElMessage.success('Deleted successfully')
-  }).catch(() => {
-    ElMessage.info('Deletion cancelled')
-  })
 }
 
 const handleNodeClick = (data) => {
@@ -190,11 +124,17 @@ const handleSave = async (formData) => {
     return
   }
 
+  // 确保带上category字段
+  const menuData = {
+    ...formData,
+    category: formData.category || 'portal' // 如果没有category，默认值为portal
+  }
+
   if (formData.id) {
-    await updateMenu(formData)
+    await updateMenu(menuData)
     ElMessage.success('Saved successfully')
   } else {
-    await addMenu(formData)
+    await addMenu(menuData)
     ElMessage.success('Added successfully')
   }
   currentMenu.value = null

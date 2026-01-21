@@ -70,7 +70,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { Refresh, Check } from '@element-plus/icons-vue'
+import { RefreshRight as Refresh, Check } from '@element-plus/icons-vue'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -87,6 +87,7 @@ const formData = ref({
   parent_id: '',
   name: '',
   module: '',
+  category: '',
   text: '',
   link: '',
   active: true,
@@ -105,6 +106,7 @@ watch(() => props.currentMenu, (newMenu) => {
       parent_id: newMenu.parent_id || '',
       name: newMenu.name,
       module: newMenu.module || '',
+      category: newMenu.category || '',
       text: newMenu.text || '',
       link: newMenu.link || '',
       active: newMenu.active !== undefined ? newMenu.active : true,
