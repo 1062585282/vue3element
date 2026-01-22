@@ -19,13 +19,12 @@
     
     <!-- 员工表格 -->
     <el-table
-      :data="paginatedStaffs"
+      :data="staffs"
       v-loading="loading"
       stripe
       border
       style="width: 100%"
       row-key="staffId"
-      @expand-change="handleExpandChange"
     >
       <!-- 展开行 -->
       <el-table-column type="expand">
@@ -127,7 +126,7 @@
         v-model:page-size="pagination.pageSize"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="filteredStaffs.length"
+        :total="totalStaffs"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -136,14 +135,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Plus, RefreshRight as Refresh, Search, Edit, Delete as DeleteIcon } from '@element-plus/icons-vue'
 import { get } from '../../utils/request.js'
 import { DEFAULT_STAFFS } from '../../constants/mockData.js'
 
 // 员工数据
 const staffs = ref([])
-const filteredStaffs = ref([])
+const totalStaffs = ref(0)
 const loading = ref(false)
 const searchQuery = ref('')
 
@@ -153,33 +152,45 @@ const pagination = ref({
   pageSize: 10
 })
 
-
-
-// 分页计算
-const paginatedStaffs = computed(() => {
-  const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-  const end = start + pagination.value.pageSize
-  return filteredStaffs.value.slice(start, end)
-})
-
 // 加载员工数据
 const loadStaffs = async () => {
   loading.value = true
   try {
-    // 模拟API调用
-    // const data = await get('/staffs')
-    // staffs.value = data
+    // 模拟API调用，传递分页参数和searchQuery
+    const params = {
+      page: pagination.value.currentPage,
+      pageSize: pagination.value.pageSize,
+      search: searchQuery.value
+    }
     
-    // 使用模拟数据
-    staffs.value = DEFAULT_STAFFS
+    // 模拟API调用延迟
+    await new Promise(resolve => setTimeout(resolve, 500))
     
-    // 初始筛选
-    handleSearch()
+    // 使用模拟数据模拟API返回
+    let filteredData = [...DEFAULT_STAFFS]
+    
+    // 模拟API搜索
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase()
+      filteredData = filteredData.filter(staff => {
+        return (
+          staff.staffId.toLowerCase().includes(query) ||
+          staff.staffName.toLowerCase().includes(query)
+        )
+      })
+    }
+    
+    // 模拟API分页
+    totalStaffs.value = filteredData.length
+    const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
+    const end = start + pagination.value.pageSize
+    staffs.value = filteredData.slice(start, end)
+    
   } catch (error) {
     console.error('Failed to load staffs:', error)
     // 出错时使用模拟数据
     staffs.value = DEFAULT_STAFFS
-    handleSearch()
+    totalStaffs.value = DEFAULT_STAFFS.length
   } finally {
     loading.value = false
   }
@@ -187,37 +198,25 @@ const loadStaffs = async () => {
 
 // 处理搜索
 const handleSearch = () => {
-  const query = searchQuery.value.toLowerCase()
-  if (!query) {
-    filteredStaffs.value = staffs.value
-  } else {
-    filteredStaffs.value = staffs.value.filter(staff => {
-      return (
-        staff.staffId.toLowerCase().includes(query) ||
-        staff.staffName.toLowerCase().includes(query)
-      )
-    })
-  }
   // 重置到第一页
   pagination.value.currentPage = 1
+  // 重新加载数据
+  loadStaffs()
 }
 
 // 处理分页大小变化
 const handleSizeChange = (size) => {
   pagination.value.pageSize = size
   pagination.value.currentPage = 1
+  // 重新加载数据
+  loadStaffs()
 }
 
 // 处理当前页变化
 const handleCurrentChange = (page) => {
   pagination.value.currentPage = page
-}
-
-// 处理展开行变化
-const handleExpandChange = (row, expandedRows) => {
-  // 可以在这里处理展开行的逻辑
-  console.log('Expanded row:', row)
-  console.log('Expanded rows:', expandedRows)
+  // 重新加载数据
+  loadStaffs()
 }
 
 // 初始化
