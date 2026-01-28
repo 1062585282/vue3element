@@ -1,30 +1,68 @@
 <template>
   <div id="app">
-    <el-tabs v-model="activeTab" class="main-tabs">
-      <el-tab-pane label="Module Management" name="module">
-        <ModuleManagement />
-      </el-tab-pane>
-      <el-tab-pane label="Menu Management" name="menu">
-        <MenuManagement />
-      </el-tab-pane>
-      <el-tab-pane label="Form Design" name="form-design">
-        <FormDesign />
-      </el-tab-pane>
-      <el-tab-pane label="Staff Management" name="staff-management">
-        <StaffManagement />
-      </el-tab-pane>
-    </el-tabs>
+    <el-container style="height: 100vh;">
+      <!-- 左侧菜单 -->
+      <el-aside width="220px" style="background-color: #fff; border-right: 1px solid #e4e7ed;">
+        <el-menu
+          :default-active="activeMenu"
+          class="app-menu"
+          @select="handleMenuSelect"
+        >
+          <el-menu-item index="module" :icon="Grid">
+            Module Management
+          </el-menu-item>
+          <el-menu-item index="menu" :icon="Menu">
+            Menu Management
+          </el-menu-item>
+          <el-menu-item index="role" :icon="UserFilled">
+            Role Management
+          </el-menu-item>
+          <el-menu-item index="form-design" :icon="EditPen">
+            Form Design
+          </el-menu-item>
+          <el-menu-item index="staff-management" :icon="User">
+            Staff Management
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      
+      <!-- 右侧内容 -->
+      <el-main style="padding: 20px; overflow: auto;">
+        <component :is="currentComponent" />
+      </el-main>
+    </el-container>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { Grid, Menu, EditPen, User, UserFilled } from '@element-plus/icons-vue'
 import ModuleManagement from './components/module/ModuleManagement.vue'
 import MenuManagement from './components/menu/MenuManagement.vue'
 import FormDesign from './components/unit/FormDesign.vue'
 import StaffManagement from './components/unit/StaffManagement.vue'
+import RoleManagement from './components/role/RoleManagement.vue'
 
-const activeTab = ref('menu')
+const activeMenu = ref('menu')
+
+// 组件映射
+const componentMap = {
+  'module': ModuleManagement,
+  'menu': MenuManagement,
+  'role': RoleManagement,
+  'form-design': FormDesign,
+  'staff-management': StaffManagement
+}
+
+// 当前显示的组件
+const currentComponent = computed(() => {
+  return componentMap[activeMenu.value]
+})
+
+// 处理菜单选择
+const handleMenuSelect = (index) => {
+  activeMenu.value = index
+}
 </script>
 
 <style>
@@ -42,41 +80,53 @@ const activeTab = ref('menu')
   background-color: #f5f7fa;
 }
 
-.main-tabs {
-  padding: 20px;
+.app-menu {
+  height: 100%;
+  border-right: none;
 }
 
-:deep(.el-tabs__content) {
-  height: calc(100% - 55px);
+.el-container {
+  height: 100%;
+}
+
+.el-aside {
+  background-color: #fff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.el-main {
+  background-color: #f5f7fa;
+  padding: 20px;
   overflow: auto;
 }
 
-:deep(.el-tabs__content)::-webkit-scrollbar {
+/* 滚动条样式 */
+.el-main::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-:deep(.el-tabs__content)::-webkit-scrollbar-thumb {
+.el-main::-webkit-scrollbar-thumb {
   background: #dcdfe6;
   border-radius: 4px;
 }
 
-:deep(.el-tabs__content)::-webkit-scrollbar-thumb:hover {
+.el-main::-webkit-scrollbar-thumb:hover {
   background: #b0b0b0;
 }
 
-:deep(.el-tabs__content)::-webkit-scrollbar-track {
+.el-main::-webkit-scrollbar-track {
   background: #f5f7fa;
   border-radius: 4px;
 }
 
-:deep(.el-tabs__content) {
+.el-main {
   scrollbar-width: 8px;
   scrollbar-color: #dcdfe6 #f5f7fa;
   scrollbar-track-color: #f5f7fa;
 }
 
-:deep(.el-tabs__content)::-ms-overflow-style {
+.el-main::-ms-overflow-style {
   scrollbar-width: 8px;
   scrollbar-color: #dcdfe6 #f5f7fa;
   scrollbar-track-color: #f5f7fa;

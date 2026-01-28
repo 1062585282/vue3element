@@ -242,7 +242,6 @@ onMounted(() => {
 
 <style scoped>
 .module-management {
-  padding: 20px;
   width: 100%;
 }
 
