@@ -67,55 +67,17 @@
     </div>
     
     <!-- Add Role Dialog -->
-    <el-dialog
-      v-model="addRoleDialogVisible"
-      title="Add Role"
-      width="500px"
-    >
-      <el-form
-        :model="addRoleForm"
-        :rules="addRoleRules"
-        ref="addRoleFormRef"
-        label-width="100px"
-        class="add-role-form"
-      >
-        <el-form-item label="Name" prop="name">
-          <el-input v-model="addRoleForm.name" placeholder="Enter role name" />
-        </el-form-item>
-        <el-form-item label="Code" prop="code">
-          <el-input v-model="addRoleForm.code" placeholder="Enter role code" />
-        </el-form-item>
-        <el-form-item label="Type" prop="type">
-          <el-select
-            v-model="addRoleForm.type"
-            placeholder="Select role type"
-          >
-            <el-option label="bund BU" :value="1" />
-            <el-option label="unbund BU" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="Description" prop="description">
-          <el-input
-            v-model="addRoleForm.description"
-            placeholder="Enter role description"
-            type="textarea"
-            rows="3"
-          />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="addRoleDialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="saveRole">Save</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    <AddRoleDialog
+      v-model:visible="addRoleDialogVisible"
+      @role-added="handleRoleAdded"
+    />
   </el-card>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
+import AddRoleDialog from './AddRoleDialog.vue'
 
 // 状态变量
 const roles = ref([])
@@ -128,30 +90,6 @@ const pagination = reactive({
 const searchQuery = ref('')
 const selectedType = ref('')
 const addRoleDialogVisible = ref(false)
-const addRoleFormRef = ref(null)
-
-// 表单数据
-const addRoleForm = reactive({
-  name: '',
-  code: '',
-  type: '',
-  description: ''
-})
-
-// 表单验证规则
-const addRoleRules = reactive({
-  name: [
-    { required: true, message: 'Please enter role name', trigger: 'blur' },
-    { min: 2, max: 50, message: 'Length should be between 2 and 50', trigger: 'blur' }
-  ],
-  code: [
-    { required: true, message: 'Please enter role code', trigger: 'blur' },
-    { min: 2, max: 20, message: 'Length should be between 2 and 20', trigger: 'blur' }
-  ],
-  type: [
-    { required: true, message: 'Please select role type', trigger: 'change' }
-  ]
-})
 
 // 类型映射
 const typeMap = {
@@ -276,48 +214,29 @@ const handleCurrentChange = (page) => {
 
 // 打开添加角色对话框
 const openAddRoleDialog = () => {
-  // Reset form
-  addRoleForm.name = ''
-  addRoleForm.code = ''
-  addRoleForm.type = ''
-  addRoleForm.description = ''
   // Open dialog
   addRoleDialogVisible.value = true
 }
 
-// 保存角色
-const saveRole = () => {
-  if (!addRoleFormRef.value) return
+// 处理角色添加
+const handleRoleAdded = (roleData) => {
+  // Generate new role ID
+  const newId = `ROLE_${String(mockRoles.value.length + 1).padStart(3, '0')}`
   
-  addRoleFormRef.value.validate((valid) => {
-    if (valid) {
-      // Generate new role ID
-      const newId = `ROLE_${String(mockRoles.value.length + 1).padStart(3, '0')}`
-      
-      // Create new role object
-      const newRole = {
-        id: newId,
-        name: addRoleForm.name,
-        code: addRoleForm.code,
-        type: addRoleForm.type,
-        description: addRoleForm.description
-      }
-      
-      // Add to mock data
-      mockRoles.value.unshift(newRole)
-      
-      // Close dialog
-      addRoleDialogVisible.value = false
-      
-      // Reload roles
-      loadRoles()
-      
-      // Show success message
-      ElMessage.success('Role added successfully!')
-    } else {
-      return false
-    }
-  })
+  // Create new role object
+  const newRole = {
+    id: newId,
+    name: roleData.name,
+    code: roleData.code,
+    type: roleData.type,
+    description: roleData.description
+  }
+  
+  // Add to mock data
+  mockRoles.value.unshift(newRole)
+  
+  // Reload roles
+  loadRoles()
 }
 
 // 初始化加载
