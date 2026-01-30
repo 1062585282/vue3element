@@ -23,7 +23,7 @@
         </div>
         <div class="header-buttons">
           <el-button @click="loadRoles">Refresh</el-button>
-          <el-button type="primary">Add Role</el-button>
+          <el-button type="primary" @click="openAddRoleDialog">Add Role</el-button>
         </div>
       </div>
     </div>
@@ -65,140 +65,265 @@
         @current-change="handleCurrentChange"
       />
     </div>
+    
+    <!-- Add Role Dialog -->
+    <el-dialog
+      v-model="addRoleDialogVisible"
+      title="Add Role"
+      width="500px"
+    >
+      <el-form
+        :model="addRoleForm"
+        :rules="addRoleRules"
+        ref="addRoleFormRef"
+        label-width="100px"
+        class="add-role-form"
+      >
+        <el-form-item label="Name" prop="name">
+          <el-input v-model="addRoleForm.name" placeholder="Enter role name" />
+        </el-form-item>
+        <el-form-item label="Code" prop="code">
+          <el-input v-model="addRoleForm.code" placeholder="Enter role code" />
+        </el-form-item>
+        <el-form-item label="Type" prop="type">
+          <el-select
+            v-model="addRoleForm.type"
+            placeholder="Select role type"
+          >
+            <el-option label="bund BU" :value="1" />
+            <el-option label="unbund BU" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Description" prop="description">
+          <el-input
+            v-model="addRoleForm.description"
+            placeholder="Enter role description"
+            type="textarea"
+            rows="3"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addRoleDialogVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="saveRole">Save</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
-<script>
-export default {
-  name: 'RoleManagement',
-  data() {
-    return {
-      roles: [],
-      totalRoles: 0,
-      loading: false,
-      pagination: {
-        currentPage: 1,
-        pageSize: 10
-      },
-      searchQuery: '',
-      selectedType: '',
-      typeMap: {
-        1: 'bund BU',
-        2: 'unbund BU'
-      },
-      mockRoles: [
-        {
-          id: 'ROLE_001',
-          name: 'Admin',
-          code: 'ADMIN',
-          type: 1,
-          description: 'System administrator'
-        },
-        {
-          id: 'ROLE_002',
-          name: 'Manager',
-          code: 'MANAGER',
-          type: 1,
-          description: 'Department manager'
-        },
-        {
-          id: 'ROLE_003',
-          name: 'User',
-          code: 'USER',
-          type: 2,
-          description: 'Regular user'
-        },
-        {
-          id: 'ROLE_004',
-          name: 'Guest',
-          code: 'GUEST',
-          type: 2,
-          description: 'Guest user'
-        },
-        {
-          id: 'ROLE_005',
-          name: 'HR Manager',
-          code: 'HR_MANAGER',
-          type: 1,
-          description: 'HR department manager'
-        },
-        {
-          id: 'ROLE_006',
-          name: 'Finance Manager',
-          code: 'FINANCE_MANAGER',
-          type: 1,
-          description: 'Finance department manager'
-        },
-        {
-          id: 'ROLE_007',
-          name: 'Developer',
-          code: 'DEVELOPER',
-          type: 2,
-          description: 'Software developer'
-        },
-        {
-          id: 'ROLE_008',
-          name: 'Tester',
-          code: 'TESTER',
-          type: 2,
-          description: 'Software tester'
-        }
-      ]
-    }
-  },
-  mounted() {
-    this.loadRoles()
-  },
-  methods: {
-    loadRoles() {
-      this.loading = true
-      setTimeout(() => {
-        // 先过滤数据
-        let filteredData = [...this.mockRoles]
-        
-        // 根据搜索条件过滤
-        if (this.searchQuery) {
-          const query = this.searchQuery.toLowerCase()
-          filteredData = filteredData.filter(role => {
-            return (
-              role.name.toLowerCase().includes(query) ||
-              role.code.toLowerCase().includes(query)
-            )
-          })
-        }
-        
-        // 根据类型过滤
-        if (this.selectedType) {
-          filteredData = filteredData.filter(role => {
-            return role.type === this.selectedType
-          })
-        }
-        
-        // 计算总数和分页
-        this.totalRoles = filteredData.length
-        const start = (this.pagination.currentPage - 1) * this.pagination.pageSize
-        const end = start + this.pagination.pageSize
-        this.roles = filteredData.slice(start, end)
-        this.loading = false
-      }, 500)
-    },
-    handleSearch() {
-      // 重置到第一页
-      this.pagination.currentPage = 1
-      // 重新加载数据
-      this.loadRoles()
-    },
-    handleSizeChange(size) {
-      this.pagination.pageSize = size
-      this.pagination.currentPage = 1
-      this.loadRoles()
-    },
-    handleCurrentChange(page) {
-      this.pagination.currentPage = page
-      this.loadRoles()
-    }
-  }
+<script setup>
+import { ref, onMounted, reactive } from 'vue'
+import { ElMessage } from 'element-plus'
+
+// 状态变量
+const roles = ref([])
+const totalRoles = ref(0)
+const loading = ref(false)
+const pagination = reactive({
+  currentPage: 1,
+  pageSize: 10
+})
+const searchQuery = ref('')
+const selectedType = ref('')
+const addRoleDialogVisible = ref(false)
+const addRoleFormRef = ref(null)
+
+// 表单数据
+const addRoleForm = reactive({
+  name: '',
+  code: '',
+  type: '',
+  description: ''
+})
+
+// 表单验证规则
+const addRoleRules = reactive({
+  name: [
+    { required: true, message: 'Please enter role name', trigger: 'blur' },
+    { min: 2, max: 50, message: 'Length should be between 2 and 50', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: 'Please enter role code', trigger: 'blur' },
+    { min: 2, max: 20, message: 'Length should be between 2 and 20', trigger: 'blur' }
+  ],
+  type: [
+    { required: true, message: 'Please select role type', trigger: 'change' }
+  ]
+})
+
+// 类型映射
+const typeMap = {
+  1: 'bund BU',
+  2: 'unbund BU'
 }
+
+// 模拟数据
+const mockRoles = ref([
+  {
+    id: 'ROLE_001',
+    name: 'Admin',
+    code: 'ADMIN',
+    type: 1,
+    description: 'System administrator'
+  },
+  {
+    id: 'ROLE_002',
+    name: 'Manager',
+    code: 'MANAGER',
+    type: 1,
+    description: 'Department manager'
+  },
+  {
+    id: 'ROLE_003',
+    name: 'User',
+    code: 'USER',
+    type: 2,
+    description: 'Regular user'
+  },
+  {
+    id: 'ROLE_004',
+    name: 'Guest',
+    code: 'GUEST',
+    type: 2,
+    description: 'Guest user'
+  },
+  {
+    id: 'ROLE_005',
+    name: 'HR Manager',
+    code: 'HR_MANAGER',
+    type: 1,
+    description: 'HR department manager'
+  },
+  {
+    id: 'ROLE_006',
+    name: 'Finance Manager',
+    code: 'FINANCE_MANAGER',
+    type: 1,
+    description: 'Finance department manager'
+  },
+  {
+    id: 'ROLE_007',
+    name: 'Developer',
+    code: 'DEVELOPER',
+    type: 2,
+    description: 'Software developer'
+  },
+  {
+    id: 'ROLE_008',
+    name: 'Tester',
+    code: 'TESTER',
+    type: 2,
+    description: 'Software tester'
+  }
+])
+
+// 加载角色数据
+const loadRoles = () => {
+  loading.value = true
+  setTimeout(() => {
+    // 先过滤数据
+    let filteredData = [...mockRoles.value]
+    
+    // 根据搜索条件过滤
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase()
+      filteredData = filteredData.filter(role => {
+        return (
+          role.name.toLowerCase().includes(query) ||
+          role.code.toLowerCase().includes(query)
+        )
+      })
+    }
+    
+    // 根据类型过滤
+    if (selectedType.value) {
+      filteredData = filteredData.filter(role => {
+        return role.type === selectedType.value
+      })
+    }
+    
+    // 计算总数和分页
+    totalRoles.value = filteredData.length
+    const start = (pagination.currentPage - 1) * pagination.pageSize
+    const end = start + pagination.pageSize
+    roles.value = filteredData.slice(start, end)
+    loading.value = false
+  }, 500)
+}
+
+// 处理搜索
+const handleSearch = () => {
+  // 重置到第一页
+  pagination.currentPage = 1
+  // 重新加载数据
+  loadRoles()
+}
+
+// 处理分页大小变化
+const handleSizeChange = (size) => {
+  pagination.pageSize = size
+  pagination.currentPage = 1
+  loadRoles()
+}
+
+// 处理当前页变化
+const handleCurrentChange = (page) => {
+  pagination.currentPage = page
+  loadRoles()
+}
+
+// 打开添加角色对话框
+const openAddRoleDialog = () => {
+  // Reset form
+  addRoleForm.name = ''
+  addRoleForm.code = ''
+  addRoleForm.type = ''
+  addRoleForm.description = ''
+  // Open dialog
+  addRoleDialogVisible.value = true
+}
+
+// 保存角色
+const saveRole = () => {
+  if (!addRoleFormRef.value) return
+  
+  addRoleFormRef.value.validate((valid) => {
+    if (valid) {
+      // Generate new role ID
+      const newId = `ROLE_${String(mockRoles.value.length + 1).padStart(3, '0')}`
+      
+      // Create new role object
+      const newRole = {
+        id: newId,
+        name: addRoleForm.name,
+        code: addRoleForm.code,
+        type: addRoleForm.type,
+        description: addRoleForm.description
+      }
+      
+      // Add to mock data
+      mockRoles.value.unshift(newRole)
+      
+      // Close dialog
+      addRoleDialogVisible.value = false
+      
+      // Reload roles
+      loadRoles()
+      
+      // Show success message
+      ElMessage.success('Role added successfully!')
+    } else {
+      return false
+    }
+  })
+}
+
+// 初始化加载
+onMounted(() => {
+  loadRoles()
+})
 </script>
 
 <style scoped>

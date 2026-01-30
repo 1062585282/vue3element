@@ -17,6 +17,9 @@
           <el-menu-item index="role" :icon="UserFilled">
             Role Management
           </el-menu-item>
+          <el-menu-item index="permission" :icon="Lock">
+            Permission Management
+          </el-menu-item>
           <el-menu-item index="form-design" :icon="EditPen">
             Form Design
           </el-menu-item>
@@ -28,28 +31,51 @@
       
       <!-- 右侧内容 -->
       <el-main style="padding: 20px; overflow: auto;">
-        <component :is="currentComponent" />
+        <Suspense>
+          <template #default>
+            <component :is="currentComponent" />
+          </template>
+          <template #fallback>
+            <div v-loading="true">Loading...</div>
+          </template>
+        </Suspense>
       </el-main>
     </el-container>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled } from '@element-plus/icons-vue'
-import ModuleManagement from './components/module/ModuleManagement.vue'
-import MenuManagement from './components/menu/MenuManagement.vue'
-import FormDesign from './components/unit/FormDesign.vue'
-import StaffManagement from './components/unit/StaffManagement.vue'
-import RoleManagement from './components/role/RoleManagement.vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
+
+// 使用本地异步组件加载（开发模式）
+const ModuleManagement = defineAsyncComponent(() => 
+  import('./components/module/ModuleManagement.vue')
+)
+const MenuManagement = defineAsyncComponent(() => 
+  import('./components/menu/MenuManagement.vue')
+)
+const RoleManagement = defineAsyncComponent(() => 
+  import('./components/role/RoleManagement.vue')
+)
+const FormDesign = defineAsyncComponent(() => 
+  import('./components/unit/FormDesign.vue')
+)
+const StaffManagement = defineAsyncComponent(() => 
+  import('./components/unit/StaffManagement.vue')
+)
+const PermissionManagement = defineAsyncComponent(() => 
+  import('./components/permission/PermissionManagement.vue')
+)
 
 // 组件映射
 const componentMap = {
   'module': ModuleManagement,
   'menu': MenuManagement,
   'role': RoleManagement,
+  'permission': PermissionManagement,
   'form-design': FormDesign,
   'staff-management': StaffManagement
 }
@@ -98,6 +124,11 @@ const handleMenuSelect = (index) => {
   background-color: #f5f7fa;
   padding: 20px;
   overflow: auto;
+}
+
+/* 表格标题行样式 */
+.el-table th {
+  background-color: #f5f7fa !important;
 }
 
 /* 滚动条样式 */
