@@ -4,10 +4,10 @@
       <h3>Menu Permissions</h3>
       <div class="header-actions">
         <el-select
-          v-model="selectedCategory"
+          :model-value="selectedCategory"
+          @update:model-value="handleCategoryChange"
           placeholder="Select a category"
           clearable
-          @change="handleCategoryChange"
           class="category-select"
         >
           <el-option
@@ -29,7 +29,7 @@
     </div>
     <el-tree
       v-if="selectedRole"
-      v-model="checkedKeys"
+      :checked-keys="checkedKeys"
       :data="menuTree"
       node-key="id"
       show-checkbox
