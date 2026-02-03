@@ -6,66 +6,53 @@
       </div>
     </div>
     
-    <!-- 角色选择 -->
-    <div class="role-selection">
-      <el-select
-        v-model="selectedRole"
-        placeholder="Select a role"
-        clearable
-        @change="handleRoleChange"
-        class="role-select"
-      >
-        <el-option
-          v-for="role in roles"
-          :key="role.id"
-          :label="role.name"
-          :value="role"
-        />
-      </el-select>
-      <el-button
-        v-if="selectedRole"
-        type="primary"
-        @click="savePermissions"
-      >
-        Save Permissions
-      </el-button>
-    </div>
-    
-    <!-- 菜单权限树 -->
-    <div class="permission-tree-section">
-      <h3>Menu Permissions</h3>
-      <el-tree
-        v-if="selectedRole"
-        v-model="checkedKeys"
-        :data="menuTree"
-        node-key="id"
-        show-checkbox
-        check-strictly
-        :default-expand-all="true"
+    <div class="permission-content">
+      <!-- 左侧角色列表 -->
+      <RoleList 
+        :roles="roles"
+        :selected-role="selectedRole"
+        @role-select="selectRole"
+      />
+      
+      <!-- 右侧菜单权限树 -->
+      <MenuPermissionTree 
+        :selected-role="selectedRole"
+        :menu-tree="menuTree"
+        :checked-keys="checkedKeys"
+        :categories="categories"
+        :selected-category="selectedCategory"
+        @category-change="handleCategoryChange"
+        @save-permissions="savePermissions"
         @check-change="handleCheckChange"
-        class="permission-tree"
-      >
-        <template #default="{ node, data }">
-          <span class="tree-node-content">
-            <i :class="data.icon || 'el-icon-folder'" style="margin-right: 8px;"></i>
-            {{ data.label }}
-          </span>
-        </template>
-      </el-tree>
-      <div v-else class="no-role-selected">
-        Please select a role to configure permissions
-      </div>
+      />
     </div>
   </el-card>
 </template>
 
 <script>
+import { DEFAULT_MENUS } from '../../constants/mockData.js'
+import RoleList from './RoleList.vue'
+import MenuPermissionTree from './MenuPermissionTree.vue'
+
 export default {
   name: 'PermissionManagement',
+  components: {
+    RoleList,
+    MenuPermissionTree
+  },
   data() {
     return {
       roles: [],
       selectedRole: null,
+      categories: [
+        { value: 'dashboard', label: 'Dashboard' },
+        { value: 'unit', label: 'Function Unit' },
+        { value: 'system', label: 'System' },
+        { value: 'settings', label: 'Settings' },
+        { value: 'content', label: 'Content' },
+        { value: 'reports', label: 'Reports' }
+      ],
+      selectedCategory: null,
       menuTree: [],
       checkedKeys: [],
       permissions: {}
@@ -110,39 +97,63 @@ export default {
       ]
     },
     loadMenuTree() {
-      // Mock menu tree data
-      this.menuTree = [
-        {
-          id: 'MENU_001',
-          label: 'Module Management',
-          icon: 'el-icon-grid'
-        },
-        {
-          id: 'MENU_002',
-          label: 'Menu Management',
-          icon: 'el-icon-menu'
-        },
-        {
-          id: 'MENU_003',
-          label: 'Role Management',
-          icon: 'el-icon-user-filled'
-        },
-        {
-          id: 'MENU_004',
-          label: 'Permission Management',
-          icon: 'el-icon-lock'
-        },
-        {
-          id: 'MENU_005',
-          label: 'Form Design',
-          icon: 'el-icon-edit'
-        },
-        {
-          id: 'MENU_006',
-          label: 'Staff Management',
-          icon: 'el-icon-user'
+      // 使用与Menu Management相同的数据源
+      // 转换菜单数据结构以适应权限树
+      const transformMenus = (menus) => {
+        return menus.map(menu => {
+          const transformedMenu = {
+            id: menu.id,
+            label: menu.text || menu.name,
+            icon: menu.icon,
+            category: menu.module
+          }
+          
+          if (menu.children && menu.children.length > 0) {
+            transformedMenu.children = transformMenus(menu.children)
+          }
+          
+          return transformedMenu
+        })
+      }
+      
+      let allMenus = transformMenus(DEFAULT_MENUS)
+      
+      // Filter menus by selected category
+      if (this.selectedCategory) {
+        // 筛选包含指定category的菜单及其子菜单
+        const filterByCategory = (menus) => {
+          return menus.filter(menu => {
+            if (menu.category === this.selectedCategory) {
+              return true
+            }
+            if (menu.children && menu.children.length > 0) {
+              const filteredChildren = filterByCategory(menu.children)
+              if (filteredChildren.length > 0) {
+                menu.children = filteredChildren
+                return true
+              }
+            }
+            return false
+          })
         }
-      ]
+        
+        this.menuTree = filterByCategory(allMenus)
+      } else {
+        this.menuTree = allMenus
+      }
+    },
+    handleCategoryChange(value) {
+      this.selectedCategory = value
+      // Reload menu tree when category changes
+      this.loadMenuTree()
+      // If a role is selected, reload its permissions
+      if (this.selectedRole) {
+        this.loadRolePermissions(this.selectedRole.id)
+      }
+    },
+    selectRole(role) {
+      this.selectedRole = role
+      this.handleRoleChange(role)
     },
     handleRoleChange(role) {
       if (role) {
@@ -153,12 +164,12 @@ export default {
       }
     },
     loadRolePermissions(roleId) {
-      // Mock permission data
+      // Mock permission data with new menu IDs
       const mockPermissions = {
-        'ROLE_001': ['MENU_001', 'MENU_002', 'MENU_003', 'MENU_004', 'MENU_005', 'MENU_006'],
-        'ROLE_002': ['MENU_001', 'MENU_002', 'MENU_005', 'MENU_006'],
-        'ROLE_003': ['MENU_005', 'MENU_006'],
-        'ROLE_004': ['MENU_006']
+        'ROLE_001': ['menu_001', 'menu_002', 'menu_003', 'menu_004', 'menu_005', 'menu_006', 'menu_007', 'menu_008', 'menu_009', 'menu_010', 'menu_011', 'menu_012', 'menu_013', 'menu_014', 'menu_015', 'menu_016', 'menu_017', 'menu_018', 'menu_019', 'menu_020', 'menu_021', 'menu_022', 'menu_023', 'menu_024', 'menu_025', 'menu_026', 'menu_027', 'menu_028'],
+        'ROLE_002': ['menu_001', 'menu_002', 'menu_003', 'menu_007', 'menu_008', 'menu_009', 'menu_010', 'menu_011', 'menu_018', 'menu_019', 'menu_020', 'menu_021', 'menu_022', 'menu_023', 'menu_024', 'menu_025', 'menu_026', 'menu_027', 'menu_028'],
+        'ROLE_003': ['menu_001', 'menu_002', 'menu_003', 'menu_010', 'menu_011', 'menu_018', 'menu_019', 'menu_026', 'menu_027', 'menu_028'],
+        'ROLE_004': ['menu_001', 'menu_002', 'menu_018', 'menu_019']
       }
       
       this.checkedKeys = mockPermissions[roleId] || []
@@ -198,70 +209,9 @@ export default {
   color: #333;
 }
 
-.role-selection {
+.permission-content {
   display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-}
-
-.role-select {
-  width: 300px;
-}
-
-.permission-tree-section {
+  gap: 20px;
   flex: 1;
-}
-
-.permission-tree-section h3 {
-  margin-bottom: 16px;
-  color: #666;
-}
-
-.permission-tree {
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
-  padding: 20px;
-  background-color: #fff;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.tree-node-content {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.no-role-selected {
-  text-align: center;
-  padding: 60px 20px;
-  color: #999;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  border: 1px dashed #dcdfe6;
-}
-
-/* 滚动条样式 */
-.permission-tree::-webkit-scrollbar {
-  width: 8px;
-}
-
-.permission-tree::-webkit-scrollbar-thumb {
-  background: #dcdfe6;
-  border-radius: 4px;
-}
-
-.permission-tree::-webkit-scrollbar-track {
-  background: #f5f7fa;
-  border-radius: 4px;
-}
-
-.permission-tree {
-  scrollbar-width: 8px;
-  scrollbar-color: #dcdfe6 #f5f7fa;
 }
 </style>
