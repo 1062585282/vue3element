@@ -1,18 +1,21 @@
 <template>
-  <el-card shadow="false" class="kong-management-container">
-    <div class="kong-header">
-      <h2>Kong Gateway Management</h2>
-      <div class="header-actions">
-        <el-button type="primary" @click="openAddServiceDialog" :icon="Plus">
-          Add Service
-        </el-button>
-        <el-button type="success" @click="openAddRouteDialog" :icon="Link">
-          Add Route
-        </el-button>
+  <el-card shadow="false" class="management-container">
+    <div class="management-header">
+      <div class="header-content">
+        <h2>Kong Gateway Management</h2>
+        <div class="header-actions">
+          <el-button @click="loadServices">Refresh</el-button>
+          <el-button type="primary" @click="openAddServiceDialog" :icon="Plus">
+            Add Service
+          </el-button>
+          <el-button type="success" @click="openAddRouteDialog" :icon="Link">
+            Add Route
+          </el-button>
+        </div>
       </div>
     </div>
     
-    <div class="kong-content">
+    <div class="management-content">
       <!-- Service列表 -->
       <KongTable
         :services="services"
@@ -195,21 +198,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.kong-management-container {
+.management-container {
   width: 100%;
   min-height: 600px;
 }
 
-.kong-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.management-header {
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid #e4e7ed;
 }
 
-.kong-header h2 {
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content h2 {
   margin: 0;
   color: #333;
 }
@@ -219,15 +225,13 @@ onMounted(() => {
   gap: 10px;
 }
 
-.kong-content {
+.management-content {
   min-height: 500px;
 }
 
-
-
 /* 响应式布局 */
 @media (max-width: 1200px) {
-  .kong-header {
+  .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
