@@ -2,7 +2,6 @@
   <el-card shadow="false" class="management-container">
     <div class="management-header">
       <div class="header-content">
-        <h2>Kong Gateway Management</h2>
         <div class="header-actions">
           <el-button @click="loadServices">Refresh</el-button>
           <el-button type="primary" @click="openAddServiceDialog" :icon="Plus">
@@ -211,13 +210,8 @@ onMounted(() => {
 
 .header-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.header-content h2 {
-  margin: 0;
-  color: #333;
 }
 
 .header-actions {

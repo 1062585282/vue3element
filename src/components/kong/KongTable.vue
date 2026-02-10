@@ -118,7 +118,6 @@ const formatDate = (dateString) => {
 }
 
 .service-name {
-  font-weight: 600;
   color: #333;
 }
 

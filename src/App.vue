@@ -55,7 +55,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key } from '@element-plus/icons-vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
 
