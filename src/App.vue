@@ -8,6 +8,12 @@
           class="app-menu"
           @select="handleMenuSelect"
         >
+          <el-menu-item index="dashboard" :icon="DataLine">
+            Dashboard
+          </el-menu-item>
+          <el-menu-item index="kong" :icon="Link">
+            Kong Management
+          </el-menu-item>
           <el-menu-item index="module" :icon="Grid">
             Module Management
           </el-menu-item>
@@ -25,6 +31,9 @@
           </el-menu-item>
           <el-menu-item index="staff-management" :icon="User">
             Staff Management
+          </el-menu-item>
+          <el-menu-item index="login" :icon="Key">
+            Login
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -46,7 +55,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled, Lock } from '@element-plus/icons-vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
 
@@ -69,15 +78,27 @@ const StaffManagement = defineAsyncComponent(() =>
 const PermissionManagement = defineAsyncComponent(() => 
   import('./components/permission/PermissionManagement.vue')
 )
+const Dashboard = defineAsyncComponent(() => 
+  import('./components/dashboard/Dashboard.vue')
+)
+const KongManagement = defineAsyncComponent(() => 
+  import('./components/kong/KongManagement.vue')
+)
+const Login = defineAsyncComponent(() => 
+  import('./components/auth/Login.vue')
+)
 
 // 组件映射
 const componentMap = {
+  'dashboard': Dashboard,
+  'kong': KongManagement,
   'module': ModuleManagement,
   'menu': MenuManagement,
   'role': RoleManagement,
   'permission': PermissionManagement,
   'form-design': FormDesign,
-  'staff-management': StaffManagement
+  'staff-management': StaffManagement,
+  'login': Login
 }
 
 // 当前显示的组件
