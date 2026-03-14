@@ -17,19 +17,27 @@
             @change="handleSearch"
             class="type-select"
           >
-            <el-option label="System Role" :value="1" />
-            <el-option label="Business Role" :value="2" />
+            <el-option
+              v-for="option in typeOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
         </div>
         <div class="header-buttons">
-          <el-button @click="loadRoles">Refresh</el-button>
-          <el-button type="primary" @click="openAddRoleDialog">Add Role</el-button>
+          <el-button @click="loadRoles">
+            <el-icon><Refresh /></el-icon>Refresh
+          </el-button>
+          <el-button type="primary" @click="openAddRoleDialog">
+            <el-icon><Plus /></el-icon>Add Role
+          </el-button>
         </div>
       </div>
     </div>
     
     <el-table
-      :data="roles"
+      :data="paginatedRoles"
       v-loading="loading"
       stripe
       border
@@ -41,16 +49,24 @@
       <el-table-column prop="code" label="Code" min-width="120" />
       <el-table-column prop="type" label="Type" min-width="120">
         <template #default="{ row }">
-          {{ typeMap[row.type] }}
+          <el-tag :type="getRoleTypeTag(row.type)">
+            {{ typeMap[row.type] }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="description" label="Description" min-width="200" />
+      <el-table-column prop="description" label="Description" min-width="200" show-overflow-tooltip />
       
-      <el-table-column label="Actions" width="240" fixed="right">
+      <el-table-column label="Actions" width="280" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" size="small">Edit</el-button>
-          <el-button type="danger" size="small">Delete</el-button>
-          <el-button type="warning" size="small" @click="openPermissionsDialog(row)">Permissions</el-button>
+          <el-button type="primary" size="small" @click="handleEdit(row)">
+            <el-icon><Edit /></el-icon>Edit
+          </el-button>
+          <el-button type="danger" size="small" @click="handleDelete(row)">
+            <el-icon><Delete /></el-icon>Delete
+          </el-button>
+          <el-button type="warning" size="small" @click="openPermissionsDialog(row)">
+            <el-icon><Key /></el-icon>Permissions
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -61,23 +77,22 @@
         v-model:page-size="pagination.pageSize"
         :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="totalRoles"
+        :total="filteredRoles.length"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
     </div>
     
-    <!-- Add Role Dialog -->
     <AddRoleDialog
       v-model:visible="addRoleDialogVisible"
       @role-added="handleRoleAdded"
     />
     
-    <!-- Permissions Dialog -->
     <el-dialog
       v-model="permissionsDialogVisible"
       title=""
       width="700px"
+      destroy-on-close
       @close="closePermissionsDialog"
     >
       <PermissionsManagement
@@ -95,161 +110,99 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, computed, onMounted, reactive } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Edit, Delete, Refresh, Key } from '@element-plus/icons-vue'
 import AddRoleDialog from './AddRoleDialog.vue'
 import PermissionsManagement from './PermissionsManagement.vue'
+import { ROLE_TYPES, TYPE_OPTIONS, TYPE_MAP } from './roleConstants.js'
 
-// 状态变量
-const roles = ref([])
-const totalRoles = ref(0)
-const loading = ref(false)
-const pagination = reactive({
+const DEFAULT_PAGINATION = {
   currentPage: 1,
   pageSize: 10
-})
+}
+
+const loading = ref(false)
 const searchQuery = ref('')
 const selectedType = ref('')
-const addRoleDialogVisible = ref(false)
+const pagination = reactive({ ...DEFAULT_PAGINATION })
 
-// 权限管理相关
+const addRoleDialogVisible = ref(false)
 const permissionsDialogVisible = ref(false)
 const currentRole = ref(null)
 const permissionsList = ref([])
 
-// 类型映射
-const typeMap = {
-  1: 'System Role',
-  2: 'Business Role'
-}
-
-// 模拟数据
 const mockRoles = ref([
-  {
-    id: 'ROLE_001',
-    name: 'Admin',
-    code: 'ADMIN',
-    type: 1,
-    description: 'System administrator'
-  },
-  {
-    id: 'ROLE_002',
-    name: 'Manager',
-    code: 'MANAGER',
-    type: 1,
-    description: 'Department manager'
-  },
-  {
-    id: 'ROLE_003',
-    name: 'User',
-    code: 'USER',
-    type: 2,
-    description: 'Regular user'
-  },
-  {
-    id: 'ROLE_004',
-    name: 'Guest',
-    code: 'GUEST',
-    type: 2,
-    description: 'Guest user'
-  },
-  {
-    id: 'ROLE_005',
-    name: 'HR Manager',
-    code: 'HR_MANAGER',
-    type: 1,
-    description: 'HR department manager'
-  },
-  {
-    id: 'ROLE_006',
-    name: 'Finance Manager',
-    code: 'FINANCE_MANAGER',
-    type: 1,
-    description: 'Finance department manager'
-  },
-  {
-    id: 'ROLE_007',
-    name: 'Developer',
-    code: 'DEVELOPER',
-    type: 2,
-    description: 'Software developer'
-  },
-  {
-    id: 'ROLE_008',
-    name: 'Tester',
-    code: 'TESTER',
-    type: 2,
-    description: 'Software tester'
-  }
+  { id: 'ROLE_001', name: 'Admin', code: 'ADMIN', type: 'System Role', description: 'System administrator with full access' },
+  { id: 'ROLE_002', name: 'Manager', code: 'MANAGER', type: 'System Role', description: 'Department manager' },
+  { id: 'ROLE_003', name: 'User', code: 'USER', type: 'Business Role', description: 'Regular user' },
+  { id: 'ROLE_004', name: 'Guest', code: 'GUEST', type: 'Business Role', description: 'Guest user with limited access' },
+  { id: 'ROLE_005', name: 'HR Manager', code: 'HR_MANAGER', type: 'System Role', description: 'HR department manager' },
+  { id: 'ROLE_006', name: 'Finance Manager', code: 'FINANCE_MANAGER', type: 'System Role', description: 'Finance department manager' },
+  { id: 'ROLE_007', name: 'Developer', code: 'DEVELOPER', type: 'Business Role', description: 'Software developer' },
+  { id: 'ROLE_008', name: 'Tester', code: 'TESTER', type: 'Business Role', description: 'Software tester' }
 ])
 
-// 加载角色数据
-const loadRoles = () => {
+const typeOptions = computed(() => TYPE_OPTIONS)
+const typeMap = computed(() => TYPE_MAP)
+
+const filteredRoles = computed(() => {
+  let result = [...mockRoles.value]
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(role => 
+      role.name.toLowerCase().includes(query) ||
+      role.code.toLowerCase().includes(query)
+    )
+  }
+  
+  if (selectedType.value) {
+    result = result.filter(role => role.type === selectedType.value)
+  }
+  
+  return result
+})
+
+const paginatedRoles = computed(() => {
+  const start = (pagination.currentPage - 1) * pagination.pageSize
+  const end = start + pagination.pageSize
+  return filteredRoles.value.slice(start, end)
+})
+
+const loadRoles = async () => {
   loading.value = true
-  setTimeout(() => {
-    // 先过滤数据
-    let filteredData = [...mockRoles.value]
-    
-    // 根据搜索条件过滤
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
-      filteredData = filteredData.filter(role => {
-        return (
-          role.name.toLowerCase().includes(query) ||
-          role.code.toLowerCase().includes(query)
-        )
-      })
-    }
-    
-    // 根据类型过滤
-    if (selectedType.value) {
-      filteredData = filteredData.filter(role => {
-        return role.type === selectedType.value
-      })
-    }
-    
-    // 计算总数和分页
-    totalRoles.value = filteredData.length
-    const start = (pagination.currentPage - 1) * pagination.pageSize
-    const end = start + pagination.pageSize
-    roles.value = filteredData.slice(start, end)
+  try {
+    await new Promise(resolve => setTimeout(resolve, 500))
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
-// 处理搜索
 const handleSearch = () => {
-  // 重置到第一页
   pagination.currentPage = 1
-  // 重新加载数据
   loadRoles()
 }
 
-// 处理分页大小变化
 const handleSizeChange = (size) => {
   pagination.pageSize = size
   pagination.currentPage = 1
-  loadRoles()
 }
 
-// 处理当前页变化
 const handleCurrentChange = (page) => {
   pagination.currentPage = page
-  loadRoles()
 }
 
-// 打开添加角色对话框
+const getRoleTypeTag = (type) => {
+  return type === 'System Role' ? 'danger' : 'info'
+}
+
 const openAddRoleDialog = () => {
-  // Open dialog
   addRoleDialogVisible.value = true
 }
 
-// 处理角色添加
 const handleRoleAdded = (roleData) => {
-  // Generate new role ID
   const newId = `ROLE_${String(mockRoles.value.length + 1).padStart(3, '0')}`
-  
-  // Create new role object
   const newRole = {
     id: newId,
     name: roleData.name,
@@ -258,22 +211,39 @@ const handleRoleAdded = (roleData) => {
     description: roleData.description
   }
   
-  // Add to mock data
   mockRoles.value.unshift(newRole)
-  
-  // Reload roles
+  ElMessage.success('Role added successfully!')
   loadRoles()
 }
 
-// 初始化加载
-onMounted(() => {
-  loadRoles()
-})
+const handleEdit = (row) => {
+  ElMessage.info(`Edit role: ${row.name}`)
+}
 
-// 打开权限管理对话框
+const handleDelete = async (row) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete role "${row.name}"?`,
+      'Confirm Delete',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }
+    )
+    
+    const index = mockRoles.value.findIndex(r => r.id === row.id)
+    if (index > -1) {
+      mockRoles.value.splice(index, 1)
+      ElMessage.success('Role deleted successfully!')
+      loadRoles()
+    }
+  } catch {
+  }
+}
+
 const openPermissionsDialog = (role) => {
   currentRole.value = role
-  // 模拟加载该角色的权限
   permissionsList.value = [
     { name: 'View Users', code: 'user:view', description: 'Can view user list' },
     { name: 'Edit Users', code: 'user:edit', description: 'Can edit user information' },
@@ -282,19 +252,20 @@ const openPermissionsDialog = (role) => {
   permissionsDialogVisible.value = true
 }
 
-// 关闭权限管理对话框
 const closePermissionsDialog = () => {
   permissionsDialogVisible.value = false
   currentRole.value = null
   permissionsList.value = []
 }
 
-// 保存权限
 const savePermissions = () => {
-  // 这里可以添加保存到后端的逻辑
   ElMessage.success('Permissions saved successfully!')
   closePermissionsDialog()
 }
+
+onMounted(() => {
+  loadRoles()
+})
 </script>
 
 <style scoped>
@@ -336,10 +307,17 @@ const savePermissions = () => {
   align-items: center;
 }
 
+.header-buttons .el-icon {
+  margin-right: 4px;
+}
+
 .pagination-section {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
 }
 
+:deep(.el-button--small .el-icon) {
+  margin-right: 2px;
+}
 </style>

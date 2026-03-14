@@ -23,8 +23,12 @@
           v-model="form.type"
           placeholder="Select role type"
         >
-          <el-option label="System Role" :value="1" />
-          <el-option label="Business Role" :value="2" />
+          <el-option
+            v-for="option in TYPE_OPTIONS"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="Groups" prop="groups">
@@ -75,6 +79,7 @@
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
+import { TYPE_OPTIONS } from './roleConstants.js'
 
 const props = defineProps({
   visible: {
