@@ -23,9 +23,35 @@
           v-model="form.type"
           placeholder="Select role type"
         >
-          <el-option label="bund BU" :value="1" />
-          <el-option label="unbund BU" :value="2" />
+          <el-option label="System Role" :value="1" />
+          <el-option label="Business Role" :value="2" />
         </el-select>
+      </el-form-item>
+      <el-form-item label="Groups" prop="groups">
+        <div class="groups-input-section">
+          <el-input
+            v-model="groupsInput"
+            placeholder="Enter group name"
+            @keyup.enter="addGroupFromInput"
+            class="group-input"
+          />
+          <el-button type="primary" size="small" circle @click="addNewGroupInput">
+            <el-icon><Plus /></el-icon>
+          </el-button>
+        </div>
+        <div class="groups-list" v-if="groupInputs.length > 0">
+          <div v-for="(input, index) in groupInputs" :key="index" class="group-item">
+            <el-input 
+              v-model="groupInputs[index]" 
+              size="small" 
+              class="group-edit-input" 
+              placeholder="Enter group name"
+            />
+            <el-button type="danger" size="small" circle @click="removeGroupInput(index)">
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </div>
+        </div>
       </el-form-item>
       <el-form-item label="Description" prop="description">
         <el-input
@@ -48,6 +74,7 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus, Delete } from '@element-plus/icons-vue'
 
 const props = defineProps({
   visible: {
@@ -60,11 +87,14 @@ const emit = defineEmits(['update:visible', 'role-added'])
 
 const dialogVisible = ref(props.visible)
 const formRef = ref(null)
+const groupsInput = ref('')
+const groupInputs = ref([])
 
 const form = reactive({
   name: '',
   code: '',
   type: '',
+  groups: [],
   description: ''
 })
 
@@ -97,10 +127,33 @@ const resetForm = () => {
   form.name = ''
   form.code = ''
   form.type = ''
+  form.groups = []
+  groupsInput.value = ''
+  groupInputs.value = []
   form.description = ''
   if (formRef.value) {
     formRef.value.resetFields()
   }
+}
+
+const addGroupFromInput = () => {
+  if (groupsInput.value.trim()) {
+    const groupName = groupsInput.value.trim()
+    if (!groupInputs.value.includes(groupName)) {
+      groupInputs.value.push(groupName)
+    } else {
+      ElMessage.warning('Group already exists!')
+    }
+    groupsInput.value = ''
+  }
+}
+
+const addNewGroupInput = () => {
+  groupInputs.value.push('')
+}
+
+const removeGroupInput = (index) => {
+  groupInputs.value.splice(index, 1)
 }
 
 const handleClose = () => {
@@ -113,6 +166,14 @@ const handleSave = () => {
   
   formRef.value.validate((valid) => {
     if (valid) {
+      // Filter out empty groups and remove duplicates
+      const validGroups = groupInputs.value
+        .map(g => g.trim())
+        .filter(g => g)
+      
+      // Remove duplicates
+      form.groups = [...new Set(validGroups)]
+      
       // Emit role-added event with form data
       emit('role-added', { ...form })
       
@@ -137,5 +198,32 @@ const handleSave = () => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.groups-input-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.group-input {
+  flex: 1;
+}
+
+.groups-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.group-edit-input {
+  flex: 1;
 }
 </style>

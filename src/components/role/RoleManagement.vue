@@ -17,8 +17,8 @@
             @change="handleSearch"
             class="type-select"
           >
-            <el-option label="bund BU" :value="1" />
-            <el-option label="unbund BU" :value="2" />
+            <el-option label="System Role" :value="1" />
+            <el-option label="Business Role" :value="2" />
           </el-select>
         </div>
         <div class="header-buttons">
@@ -46,10 +46,11 @@
       </el-table-column>
       <el-table-column prop="description" label="Description" min-width="200" />
       
-      <el-table-column label="Actions" width="160" fixed="right">
+      <el-table-column label="Actions" width="240" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" size="small">Edit</el-button>
           <el-button type="danger" size="small">Delete</el-button>
+          <el-button type="warning" size="small" @click="openPermissionsDialog(row)">Permissions</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -71,6 +72,25 @@
       v-model:visible="addRoleDialogVisible"
       @role-added="handleRoleAdded"
     />
+    
+    <!-- Permissions Dialog -->
+    <el-dialog
+      v-model="permissionsDialogVisible"
+      title=""
+      width="700px"
+      @close="closePermissionsDialog"
+    >
+      <PermissionsManagement
+        v-model:permissions="permissionsList"
+      />
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="closePermissionsDialog">Close</el-button>
+          <el-button type="primary" @click="savePermissions">Save</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -78,6 +98,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import AddRoleDialog from './AddRoleDialog.vue'
+import PermissionsManagement from './PermissionsManagement.vue'
 
 // 状态变量
 const roles = ref([])
@@ -91,10 +112,15 @@ const searchQuery = ref('')
 const selectedType = ref('')
 const addRoleDialogVisible = ref(false)
 
+// 权限管理相关
+const permissionsDialogVisible = ref(false)
+const currentRole = ref(null)
+const permissionsList = ref([])
+
 // 类型映射
 const typeMap = {
-  1: 'bund BU',
-  2: 'unbund BU'
+  1: 'System Role',
+  2: 'Business Role'
 }
 
 // 模拟数据
@@ -243,6 +269,32 @@ const handleRoleAdded = (roleData) => {
 onMounted(() => {
   loadRoles()
 })
+
+// 打开权限管理对话框
+const openPermissionsDialog = (role) => {
+  currentRole.value = role
+  // 模拟加载该角色的权限
+  permissionsList.value = [
+    { name: 'View Users', code: 'user:view', description: 'Can view user list' },
+    { name: 'Edit Users', code: 'user:edit', description: 'Can edit user information' },
+    { name: 'Delete Users', code: 'user:delete', description: 'Can delete users' }
+  ]
+  permissionsDialogVisible.value = true
+}
+
+// 关闭权限管理对话框
+const closePermissionsDialog = () => {
+  permissionsDialogVisible.value = false
+  currentRole.value = null
+  permissionsList.value = []
+}
+
+// 保存权限
+const savePermissions = () => {
+  // 这里可以添加保存到后端的逻辑
+  ElMessage.success('Permissions saved successfully!')
+  closePermissionsDialog()
+}
 </script>
 
 <style scoped>
@@ -289,4 +341,5 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
 }
+
 </style>
