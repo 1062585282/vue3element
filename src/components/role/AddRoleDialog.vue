@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="Add Role"
+    :title="isEditMode ? 'Edit Role' : 'Add Role'"
     width="500px"
     @close="handleClose"
   >
@@ -44,11 +44,10 @@
           </el-button>
         </div>
         <div class="groups-list" v-if="groupInputs.length > 0">
-          <div v-for="(input, index) in groupInputs" :key="index" class="group-item">
+          <div v-for="(input, index) in groupInputs" :key="index" class="groups-input-section">
             <el-input 
               v-model="groupInputs[index]" 
-              size="small" 
-              class="group-edit-input" 
+              class="group-input" 
               placeholder="Enter group name"
             />
             <el-button type="danger" size="small" circle @click="removeGroupInput(index)">
@@ -69,14 +68,14 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="handleClose">Cancel</el-button>
-        <el-button type="primary" @click="handleSave">Save</el-button>
+        <el-button type="primary" @click="handleSave">{{ isEditMode ? 'Update' : 'Save' }}</el-button>
       </span>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import { TYPE_OPTIONS } from './roleConstants.js'
@@ -85,17 +84,24 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
+  },
+  editData: {
+    type: Object,
+    default: null
   }
 })
 
-const emit = defineEmits(['update:visible', 'role-added'])
+const emit = defineEmits(['update:visible', 'role-added', 'role-updated'])
 
 const dialogVisible = ref(props.visible)
 const formRef = ref(null)
 const groupsInput = ref('')
 const groupInputs = ref([])
 
+const isEditMode = computed(() => !!props.editData)
+
 const form = reactive({
+  id: '',
   name: '',
   code: '',
   type: '',
@@ -120,7 +126,11 @@ const rules = {
 watch(() => props.visible, (newVal) => {
   dialogVisible.value = newVal
   if (newVal) {
-    resetForm()
+    if (props.editData) {
+      loadEditData()
+    } else {
+      resetForm()
+    }
   }
 })
 
@@ -128,7 +138,33 @@ watch(() => dialogVisible.value, (newVal) => {
   emit('update:visible', newVal)
 })
 
+watch(() => props.editData, (newVal) => {
+  if (newVal && dialogVisible.value) {
+    loadEditData()
+  }
+})
+
+const loadEditData = () => {
+  if (!props.editData) return
+  
+  form.id = props.editData.id
+  form.name = props.editData.name
+  form.code = props.editData.code
+  form.type = props.editData.type
+  form.description = props.editData.description || ''
+  
+  // Load groups if exists
+  if (props.editData.groups && props.editData.groups.length > 0) {
+    groupInputs.value = [...props.editData.groups]
+  } else {
+    groupInputs.value = []
+  }
+  
+  groupsInput.value = ''
+}
+
 const resetForm = () => {
+  form.id = ''
   form.name = ''
   form.code = ''
   form.type = ''
@@ -164,6 +200,7 @@ const removeGroupInput = (index) => {
 const handleClose = () => {
   dialogVisible.value = false
   resetForm()
+  emit('update:visible', false)
 }
 
 const handleSave = () => {
@@ -179,11 +216,15 @@ const handleSave = () => {
       // Remove duplicates
       form.groups = [...new Set(validGroups)]
       
-      // Emit role-added event with form data
-      emit('role-added', { ...form })
-      
-      // Show success message
-      ElMessage.success('Role added successfully!')
+      if (isEditMode.value) {
+        // Emit role-updated event with form data
+        emit('role-updated', { ...form })
+        ElMessage.success('Role updated successfully!')
+      } else {
+        // Emit role-added event with form data
+        emit('role-added', { ...form })
+        ElMessage.success('Role added successfully!')
+      }
       
       // Close dialog
       handleClose()
@@ -220,15 +261,5 @@ const handleSave = () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.group-item {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.group-edit-input {
-  flex: 1;
 }
 </style>
