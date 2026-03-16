@@ -1,16 +1,16 @@
 <template>
   <el-card shadow="false" class="role-management">
-    <RoleHeader
-      v-model:search="searchQuery"
-      @refresh="initData"
-      @add="openAddRoleDialog"
-    />
-
     <el-tabs v-model="activeTab" type="border-card">
       <el-tab-pane label="System Role" name="system">
+        <RoleHeader
+          v-model:search="systemSearchQuery"
+          @refresh="initData"
+          @add="openAddRoleDialog"
+        />
         <RoleTable
           :data="paginatedSystemRoles"
           :loading="loading"
+          :expandable="true"
           @edit="handleEdit"
           @delete="handleDelete"
           @permissions="openPermissionsDialog"
@@ -23,10 +23,16 @@
         />
       </el-tab-pane>
 
-      <el-tab-pane label="Business Role" name="business">
+      <el-tab-pane label="Business Unit Role" name="business">
+        <RoleHeader
+          v-model:search="businessSearchQuery"
+          @refresh="initData"
+          @add="openAddRoleDialog"
+        />
         <RoleTable
           :data="paginatedBusinessRoles"
           :loading="loading"
+          :expandable="false"
           @edit="handleEdit"
           @delete="handleDelete"
           @permissions="openPermissionsDialog"
@@ -79,7 +85,8 @@ import AddRoleDialog from './AddRoleDialog.vue'
 import PermissionsManagement from './PermissionsManagement.vue'
 
 const activeTab = ref('system')
-const searchQuery = ref('')
+const systemSearchQuery = ref('')
+const businessSearchQuery = ref('')
 const addRoleDialogVisible = ref(false)
 const editRoleData = ref(null)
 
@@ -89,19 +96,19 @@ const businessPagination = usePagination()
 const { permissionsDialogVisible, permissionsList, openPermissionsDialog, closePermissionsDialog, savePermissions } = usePermissions()
 
 const mockData = [
-  { id: 'ROLE_001', name: 'Admin', code: 'ADMIN', type: 'System Role', active: true, description: 'System administrator with full access' },
-  { id: 'ROLE_002', name: 'Manager', code: 'MANAGER', type: 'System Role', active: true, description: 'Department manager' },
+  { id: 'ROLE_001', name: 'Admin', code: 'ADMIN', type: 'System Role', active: true, description: 'System administrator with full access', groups: ['Domain Admins', 'Enterprise Admins', 'Schema Admins'] },
+  { id: 'ROLE_002', name: 'Manager', code: 'MANAGER', type: 'System Role', active: true, description: 'Department manager', groups: ['Managers', 'Department Heads'] },
   { id: 'ROLE_003', name: 'User', code: 'USER', type: 'Business Role', active: true, description: 'Regular user' },
   { id: 'ROLE_004', name: 'Guest', code: 'GUEST', type: 'Business Role', active: false, description: 'Guest user with limited access' },
-  { id: 'ROLE_005', name: 'HR Manager', code: 'HR_MANAGER', type: 'System Role', active: true, description: 'HR department manager' },
-  { id: 'ROLE_006', name: 'Finance Manager', code: 'FINANCE_MANAGER', type: 'System Role', active: true, description: 'Finance department manager' },
+  { id: 'ROLE_005', name: 'HR Manager', code: 'HR_MANAGER', type: 'System Role', active: true, description: 'HR department manager', groups: ['HR Department', 'Managers'] },
+  { id: 'ROLE_006', name: 'Finance Manager', code: 'FINANCE_MANAGER', type: 'System Role', active: true, description: 'Finance department manager', groups: ['Finance Department', 'Managers'] },
   { id: 'ROLE_007', name: 'Developer', code: 'DEVELOPER', type: 'Business Role', active: true, description: 'Software developer' },
   { id: 'ROLE_008', name: 'Tester', code: 'TESTER', type: 'Business Role', active: false, description: 'Software tester' }
 ]
 
-const filterBySearch = (data) => {
-  if (!searchQuery.value) return data
-  const query = searchQuery.value.toLowerCase()
+const filterBySearch = (data, searchQuery) => {
+  if (!searchQuery) return data
+  const query = searchQuery.toLowerCase()
   return data.filter(role =>
     role.name.toLowerCase().includes(query) ||
     role.code.toLowerCase().includes(query)
@@ -109,11 +116,11 @@ const filterBySearch = (data) => {
 }
 
 const filteredSystemRoles = computed(() =>
-  filterBySearch(roles.value.filter(role => role.type === 'System Role'))
+  filterBySearch(roles.value.filter(role => role.type === 'System Role'), systemSearchQuery.value)
 )
 
 const filteredBusinessRoles = computed(() =>
-  filterBySearch(roles.value.filter(role => role.type === 'Business Role'))
+  filterBySearch(roles.value.filter(role => role.type === 'Business Role'), businessSearchQuery.value)
 )
 
 const paginatedSystemRoles = computed(() =>

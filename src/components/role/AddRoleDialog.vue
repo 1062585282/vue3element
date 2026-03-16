@@ -31,7 +31,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="Groups" prop="groups">
+      <el-form-item v-if="showGroups" label="AD Groups" prop="groups">
         <div class="groups-input-section">
           <el-input
             v-model="groupsInput"
@@ -99,6 +99,8 @@ const groupsInput = ref('')
 const groupInputs = ref([])
 
 const isEditMode = computed(() => !!props.editData)
+
+const showGroups = computed(() => form.type === 'System Role')
 
 const form = reactive({
   id: '',
