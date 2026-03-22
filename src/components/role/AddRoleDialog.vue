@@ -4,6 +4,7 @@
     :title="isEditMode ? 'Edit Role' : 'Add Role'"
     width="500px"
     @close="handleClose"
+    @update:model-value="(val) => emit('update:visible', val)"
   >
     <el-form
       :model="form"
@@ -126,26 +127,18 @@ const rules = {
 }
 
 watch(() => props.visible, (newVal) => {
-  dialogVisible.value = newVal
-  if (newVal) {
-    if (props.editData) {
-      loadEditData()
+  if (dialogVisible.value !== newVal) {
+    dialogVisible.value = newVal
+    if (newVal) {
+      props.editData ? loadEditData() : resetForm()
     } else {
       resetForm()
     }
-  } else {
-    resetForm()
   }
-})
-
-watch(() => dialogVisible.value, (newVal) => {
-  emit('update:visible', newVal)
 })
 
 watch(() => props.editData, (newVal) => {
-  if (newVal && dialogVisible.value) {
-    loadEditData()
-  }
+  if (newVal && dialogVisible.value) loadEditData()
 })
 
 const loadEditData = () => {
@@ -176,6 +169,10 @@ const resetForm = () => {
   form.description = ''
   groupsInput.value = ''
   groupInputs.value = []
+  // 清除表单验证状态
+  if (formRef.value) {
+    formRef.value.clearValidate()
+  }
 }
 
 const addGroupFromInput = () => {
