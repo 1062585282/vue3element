@@ -133,6 +133,8 @@ watch(() => props.visible, (newVal) => {
     } else {
       resetForm()
     }
+  } else {
+    resetForm()
   }
 })
 
@@ -171,12 +173,9 @@ const resetForm = () => {
   form.code = ''
   form.type = ''
   form.groups = []
+  form.description = ''
   groupsInput.value = ''
   groupInputs.value = []
-  form.description = ''
-  if (formRef.value) {
-    formRef.value.resetFields()
-  }
 }
 
 const addGroupFromInput = () => {

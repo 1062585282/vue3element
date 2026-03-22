@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoleManagement } from './useRoleManagement.js'
 import { usePagination } from './usePagination.js'
@@ -140,7 +140,9 @@ const initData = async () => {
 
 const openAddRoleDialog = () => {
   editRoleData.value = null
-  addRoleDialogVisible.value = true
+  nextTick(() => {
+    addRoleDialogVisible.value = true
+  })
 }
 
 const handleRoleAdded = (roleData) => {
