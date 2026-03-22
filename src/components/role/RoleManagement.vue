@@ -17,9 +17,11 @@
           @active-change="handleActiveChange"
         />
         <Pagination
-          v-model:current-page="systemPagination.currentPage"
-          v-model:page-size="systemPagination.pageSize"
+          :current-page="systemPagination.currentPage.value"
+          :page-size="systemPagination.pageSize.value"
           :total="filteredSystemRoles.length"
+          @update:current-page="systemPagination.currentPage.value = $event"
+          @update:page-size="systemPagination.pageSize.value = $event"
         />
       </el-tab-pane>
 
@@ -39,9 +41,11 @@
           @active-change="handleActiveChange"
         />
         <Pagination
-          v-model:current-page="businessPagination.currentPage"
-          v-model:page-size="businessPagination.pageSize"
+          :current-page="businessPagination.currentPage.value"
+          :page-size="businessPagination.pageSize.value"
           :total="filteredBusinessRoles.length"
+          @update:current-page="businessPagination.currentPage.value = $event"
+          @update:page-size="businessPagination.pageSize.value = $event"
         />
       </el-tab-pane>
     </el-tabs>

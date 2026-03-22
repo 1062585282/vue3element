@@ -6,8 +6,8 @@
       :page-sizes="[10, 20, 50, 100]"
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
-      @update:current-page="$emit('update:current-page', $event)"
-      @update:page-size="$emit('update:page-size', $event)"
+      @update:current-page="$emit('update:currentPage', $event)"
+      @update:page-size="$emit('update:pageSize', $event)"
     />
   </div>
 </template>
@@ -28,7 +28,7 @@ defineProps({
   }
 })
 
-defineEmits(['update:current-page', 'update:page-size'])
+defineEmits(['update:currentPage', 'update:pageSize'])
 </script>
 
 <style scoped>
