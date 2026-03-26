@@ -32,6 +32,9 @@
           <el-menu-item index="staff-management" :icon="User">
             Staff Management
           </el-menu-item>
+          <el-menu-item index="user-profile" :icon="User">
+            User Profile Setup
+          </el-menu-item>
           <el-menu-item index="login" :icon="Key">
             Login
           </el-menu-item>
@@ -55,7 +58,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link } from '@element-plus/icons-vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link, Document } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
 
@@ -87,6 +90,9 @@ const KongManagement = defineAsyncComponent(() =>
 const Login = defineAsyncComponent(() => 
   import('./components/auth/Login.vue')
 )
+const UserProfileSetup = defineAsyncComponent(() => 
+  import('./components/user-profile/UserProfileSetup.vue')
+)
 
 // 组件映射
 const componentMap = {
@@ -98,6 +104,7 @@ const componentMap = {
   'permission': PermissionManagement,
   'form-design': FormDesign,
   'staff-management': StaffManagement,
+  'user-profile': UserProfileSetup,
   'login': Login
 }
 
