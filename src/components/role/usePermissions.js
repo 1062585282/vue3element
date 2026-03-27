@@ -16,27 +16,32 @@ const DEFAULT_PERMISSIONS = [
 export function usePermissions() {
   const permissionsDialogVisible = ref(false)
   const permissionsList = ref([])
+  const currentRoleId = ref('')
 
-  const openPermissionsDialog = (existingPermissions = []) => {
+  const openPermissionsDialog = (row) => {
+    const existingPermissions = row.permissions || []
     permissionsList.value = existingPermissions.length > 0 
       ? [...existingPermissions]
       : [...DEFAULT_PERMISSIONS]
+    currentRoleId.value = row.id
     permissionsDialogVisible.value = true
   }
 
   const closePermissionsDialog = () => {
     permissionsDialogVisible.value = false
     permissionsList.value = []
+    currentRoleId.value = ''
   }
 
   const savePermissions = () => {
-    ElMessage.success('Permissions saved successfully!')
+    ElMessage.success(`Permissions saved successfully for role ${currentRoleId.value}!`)
     closePermissionsDialog()
   }
 
   return {
     permissionsDialogVisible,
     permissionsList,
+    currentRoleId,
     openPermissionsDialog,
     closePermissionsDialog,
     savePermissions

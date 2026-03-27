@@ -60,12 +60,12 @@
 
     <el-dialog
       v-model="permissionsDialogVisible"
-      title=""
+      :title="`Permissions for Role ${currentRoleId}`"
       width="700px"
       destroy-on-close
       @close="closePermissionsDialog"
     >
-      <PermissionsManagement v-model:permissions="permissionsList" />
+      <PermissionsManagement v-model:permissions="permissionsList" :role-id="currentRoleId" />
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="closePermissionsDialog">Close</el-button>
@@ -97,7 +97,7 @@ const editRoleData = ref(null)
 const { roles, loading, addRole, updateRole, deleteRole } = useRoleManagement()
 const systemPagination = usePagination()
 const businessPagination = usePagination()
-const { permissionsDialogVisible, permissionsList, openPermissionsDialog, closePermissionsDialog, savePermissions } = usePermissions()
+const { permissionsDialogVisible, permissionsList, currentRoleId, openPermissionsDialog, closePermissionsDialog, savePermissions } = usePermissions()
 
 const mockData = [
   { id: 'ROLE_001', name: 'Admin', code: 'ADMIN', type: 'System Role', active: true, description: 'System administrator with full access', groups: ['Domain Admins', 'Enterprise Admins', 'Schema Admins'] },

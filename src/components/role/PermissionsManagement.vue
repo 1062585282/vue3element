@@ -1,5 +1,13 @@
 <template>
   <div class="permissions-management">
+    <div v-if="roleId" class="role-info">
+      <el-alert
+        :title="`Managing permissions for Role ID: ${roleId}`"
+        type="info"
+        :closable="false"
+        show-icon
+      />
+    </div>
     <PermissionsTable
       :permissions="permissions"
       @add-permission="showAddForm = true"
@@ -43,6 +51,10 @@ const props = defineProps({
   permissions: {
     type: Array,
     default: () => []
+  },
+  roleId: {
+    type: String,
+    default: ''
   }
 })
 
@@ -111,6 +123,10 @@ const cancelAddPermission = () => {
 <style scoped>
 .permissions-management {
   width: 100%;
+}
+
+.role-info {
+  margin-bottom: 20px;
 }
 
 .add-permission-form {
