@@ -25,10 +25,13 @@
         <div class="service-routes-count">{{ scope.row.routes.length }}</div>
       </template>
     </el-table-column>
-    <el-table-column label="Actions" width="150" fixed="right">
+    <el-table-column label="Actions" width="200" fixed="right">
       <template #default="scope">
         <el-button type="primary" size="small" @click="$emit('edit-service', scope.row)">
           Edit
+        </el-button>
+        <el-button type="success" size="small" @click="$emit('bind-route', scope.row)">
+          Bind Route
         </el-button>
         <el-button type="danger" size="small" @click="$emit('delete-service', scope.row.id)">
           Delete
@@ -100,7 +103,8 @@ const emit = defineEmits([
   'edit-service',
   'delete-service',
   'edit-route',
-  'delete-route'
+  'delete-route',
+  'bind-route'
 ])
 
 // 格式化日期
