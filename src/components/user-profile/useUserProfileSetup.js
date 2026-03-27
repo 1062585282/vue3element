@@ -123,6 +123,7 @@ export function useUserProfileSetup() {
     status: 'Draft',
     approverRejecter: '',
     approverRejecterDate: null,
+    requestType: '',
     selectedBusinessUnit: '',
     selectedRoles: []
   })
@@ -223,6 +224,7 @@ export function useUserProfileSetup() {
       status: 'Draft',
       approverRejecter: '',
       approverRejecterDate: null,
+      requestType: '',
       selectedBusinessUnit: '',
       selectedRoles: []
     }
@@ -250,7 +252,8 @@ export function useUserProfileSetup() {
       const requestData = {
         ...addForm.value,
         businessUnit: addForm.value.selectedBusinessUnit,
-        roles: addForm.value.selectedRoles
+        roles: addForm.value.selectedRoles,
+        requestType: addForm.value.requestType
       }
       
       // 移除不必要的字段
@@ -289,6 +292,7 @@ export function useUserProfileSetup() {
     showAddForm.value = true
     addForm.value = {
       ...row,
+      requestType: row.requestType || '',
       selectedBusinessUnit: row.businessUnit || '',
       selectedRoles: row.roles || []
     }

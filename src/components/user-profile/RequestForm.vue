@@ -8,6 +8,27 @@
         label-width="120px"
         class="request-form"
       >
+        <el-form-item label="Request Type" prop="requestType">
+          <el-select
+            v-model="formData.requestType"
+            placeholder="Select request type"
+            style="width: 100%"
+            @change="handleRequestTypeChange"
+          >
+            <el-option
+              label="Add Business Unit & Role"
+              value="add_business_unit_role"
+            />
+            <el-option
+              label="Remove Business Unit"
+              value="remove_business_unit"
+            />
+            <el-option
+              label="Remove Role"
+              value="remove_role"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="Business Unit">
           <el-select
             v-model="formData.selectedBusinessUnit"
@@ -67,6 +88,7 @@ const props = defineProps({
       status: 'Draft',
       approverRejecter: '',
       approverRejecterDate: null,
+      requestType: '',
       selectedBusinessUnit: '',
       selectedRoles: []
     })
@@ -90,12 +112,23 @@ const rules = {
   ],
   status: [
     { required: true, message: 'Please select status', trigger: 'change' }
+  ],
+  requestType: [
+    { required: true, message: 'Please select request type', trigger: 'change' }
   ]
 }
 
 const handleBusinessUnitChange = () => {
   // Reset roles when business unit changes
   props.formData.selectedRoles = []
+}
+
+const handleRequestTypeChange = () => {
+  // Reset fields based on request type if needed
+  // For example, if request type is remove_business_unit, you might want to clear roles
+  if (props.formData.requestType === 'remove_business_unit') {
+    props.formData.selectedRoles = []
+  }
 }
 
 const handleSubmit = async (action) => {
