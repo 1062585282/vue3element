@@ -8,7 +8,7 @@
           class="app-menu"
           @select="handleMenuSelect"
         >
-          <el-menu-item index="home" :icon="Home">
+          <el-menu-item index="home" :icon="House">
             Home
           </el-menu-item>
           <el-menu-item index="dashboard" :icon="DataLine">
@@ -61,7 +61,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link, Document, Home } from '@element-plus/icons-vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link, Document, House } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
 
