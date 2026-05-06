@@ -124,7 +124,7 @@ onMounted(() => {
 .card-row h3 {
   margin-bottom: 15px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: normal;
   color: #606266;
 }
 
@@ -163,14 +163,14 @@ onMounted(() => {
 
 .stat-status {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: normal;
   margin-bottom: 10px;
   color: #606266;
 }
 
 .stat-count {
   font-size: 48px;
-  font-weight: 700;
+  font-weight: normal;
 }
 
 /* Task card styles - white background, colored content */
