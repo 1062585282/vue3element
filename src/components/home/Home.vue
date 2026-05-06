@@ -157,32 +157,20 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* Task card styles */
-.task-in-progress {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
+/* Task card styles - white background, colored content */
 .task-in-progress .stat-status,
 .task-in-progress .stat-count {
-  color: #fff;
-}
-
-.task-pending {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #667eea;
 }
 
 .task-pending .stat-status,
 .task-pending .stat-count {
-  color: #fff;
-}
-
-.task-completed {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #f5576c;
 }
 
 .task-completed .stat-status,
 .task-completed .stat-count {
-  color: #fff;
+  color: #4facfe;
 }
 
 /* Application card styles */
