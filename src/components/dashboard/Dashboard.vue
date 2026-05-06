@@ -1,9 +1,6 @@
 <template>
   <el-card shadow="false" class="dashboard-container">
-    <div class="dashboard-header">
-      <h2>Dashboard</h2>
-      <p>Create and customize your data visualizations</p>
-    </div>
+
     
     <div class="dashboard-content">
       <!-- 左侧图表配置 -->
