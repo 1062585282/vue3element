@@ -8,6 +8,9 @@
           class="app-menu"
           @select="handleMenuSelect"
         >
+          <el-menu-item index="home" :icon="Home">
+            Home
+          </el-menu-item>
           <el-menu-item index="dashboard" :icon="DataLine">
             Dashboard
           </el-menu-item>
@@ -58,7 +61,7 @@
 
 <script setup>
 import { ref, computed, defineAsyncComponent } from 'vue'
-import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link, Document } from '@element-plus/icons-vue'
+import { Grid, Menu, EditPen, User, UserFilled, Lock, DataLine, Key, Link, Document, Home } from '@element-plus/icons-vue'
 
 const activeMenu = ref('menu')
 
@@ -81,6 +84,9 @@ const StaffManagement = defineAsyncComponent(() =>
 const PermissionManagement = defineAsyncComponent(() => 
   import('./components/permission/PermissionManagement.vue')
 )
+const Home = defineAsyncComponent(() => 
+  import('./components/home/Home.vue')
+)
 const Dashboard = defineAsyncComponent(() => 
   import('./components/dashboard/Dashboard.vue')
 )
@@ -96,6 +102,7 @@ const UserProfileSetup = defineAsyncComponent(() =>
 
 // 组件映射
 const componentMap = {
+  'home': Home,
   'dashboard': Dashboard,
   'kong': KongManagement,
   'module': ModuleManagement,
