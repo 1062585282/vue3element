@@ -129,9 +129,9 @@ onMounted(() => {
 }
 
 .cards-grid {
-  display: flex;
+  display: inline-flex;
   gap: 20px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .stat-card {
@@ -144,6 +144,7 @@ onMounted(() => {
 
 .tasks-wrapper-card {
   border-radius: 18px;
+  display: inline-block;
 }
 
 .stat-item {
