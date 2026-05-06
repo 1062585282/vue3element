@@ -5,19 +5,21 @@
     <!-- Task Cards -->
     <div class="card-row">
       <h3>Tasks</h3>
-      <div class="cards-grid">
-        <el-card 
-          v-for="task in taskStats" 
-          :key="task.status" 
-          class="stat-card"
-          :class="getTaskCardClass(task.status)"
-        >
-          <div class="stat-content">
-            <div class="stat-status">{{ task.status }}</div>
-            <div class="stat-count">{{ task.count }}</div>
+      <el-card class="tasks-wrapper-card">
+        <div class="cards-grid">
+          <div 
+            v-for="task in taskStats" 
+            :key="task.status" 
+            class="stat-item"
+            :class="getTaskCardClass(task.status)"
+          >
+            <div class="stat-content">
+              <div class="stat-status">{{ task.status }}</div>
+              <div class="stat-count">{{ task.count }}</div>
+            </div>
           </div>
-        </el-card>
-      </div>
+        </div>
+      </el-card>
     </div>
     
     <!-- Application Cards -->
@@ -139,6 +141,20 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.tasks-wrapper-card {
+  width: 100%;
+}
+
+.stat-item {
+  width: 200px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f9fafb;
 }
 
 .stat-content {
