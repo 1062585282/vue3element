@@ -84,7 +84,7 @@ const StaffManagement = defineAsyncComponent(() =>
 const PermissionManagement = defineAsyncComponent(() => 
   import('./components/permission/PermissionManagement.vue')
 )
-const Home = defineAsyncComponent(() => 
+const HomeComponent = defineAsyncComponent(() => 
   import('./components/home/Home.vue')
 )
 const Dashboard = defineAsyncComponent(() => 
@@ -102,7 +102,7 @@ const UserProfileSetup = defineAsyncComponent(() =>
 
 // 组件映射
 const componentMap = {
-  'home': Home,
+  'home': HomeComponent,
   'dashboard': Dashboard,
   'kong': KongManagement,
   'module': ModuleManagement,
