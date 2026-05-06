@@ -5,7 +5,7 @@
     <!-- Task Cards -->
     <div class="card-row">
       <h3>Tasks</h3>
-      <el-card class="tasks-wrapper-card">
+      <el-card class="tasks-wrapper-card" shadow="false">
         <div class="cards-grid">
           <div 
             v-for="task in taskStats" 
@@ -145,6 +145,7 @@ onMounted(() => {
 
 .tasks-wrapper-card {
   width: 100%;
+  border-radius: 18px;
 }
 
 .stat-item {
@@ -154,7 +155,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .stat-content {
