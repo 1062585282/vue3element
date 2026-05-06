@@ -162,14 +162,14 @@ onMounted(() => {
 }
 
 .stat-status {
-  font-size: 14px;
+  font-size: 26px;
   font-weight: normal;
   margin-bottom: 10px;
   color: #606266;
 }
 
 .stat-count {
-  font-size: 48px;
+  font-size: 20px;
   font-weight: normal;
 }
 
