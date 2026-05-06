@@ -1,6 +1,5 @@
 <template>
   <div class="home-container">
-    <h2>Dashboard</h2>
     
     <!-- Task Cards -->
     <div class="card-row">
