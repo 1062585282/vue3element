@@ -4,21 +4,19 @@
     <!-- Task Cards -->
     <div class="card-row">
       <h3>Tasks</h3>
-      <el-card class="tasks-wrapper-card" shadow="false">
-        <div class="cards-grid">
-          <div 
-            v-for="task in taskStats" 
-            :key="task.status" 
-            class="stat-item"
-            :class="getTaskCardClass(task.status)"
-          >
-            <div class="stat-content">
-              <div class="stat-status">{{ task.status }}</div>
-              <div class="stat-count">{{ task.count }}</div>
-            </div>
+      <div class="cards-grid">
+        <div 
+          v-for="task in taskStats" 
+          :key="task.status" 
+          class="stat-item"
+          :class="getTaskCardClass(task.status)"
+        >
+          <div class="stat-content">
+            <div class="stat-status">{{ task.status }}</div>
+            <div class="stat-count">{{ task.count }}</div>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
     
     <!-- Application Cards -->
@@ -55,9 +53,10 @@ const fetchTaskStats = async () => {
     
     // Mock API response
     taskStats.value = [
-      { status: 'In Progress', count: 8 },
-      { status: 'Pending', count: 15 },
-      { status: 'Completed', count: 42 }
+      { status: '销售总额:', count: 1310 },
+      { status: '仓库数量:', count: 1 },
+      { status: '商品数量:', count: 5 },
+      { status: '会员数量:', count: 1 }
     ]
   } catch (error) {
     console.error('Error fetching task stats:', error)
@@ -83,14 +82,16 @@ const fetchApplicationStats = async () => {
 // Get card class based on task status
 const getTaskCardClass = (status) => {
   switch (status) {
-    case 'In Progress':
-      return 'task-in-progress'
-    case 'Pending':
-      return 'task-pending'
-    case 'Completed':
-      return 'task-completed'
+    case '销售总额:':
+      return 'task-sales'
+    case '仓库数量:':
+      return 'task-warehouse'
+    case '商品数量:':
+      return 'task-product'
+    case '会员数量:':
+      return 'task-member'
     default:
-      return ''
+      return 'task-default'
   }
 }
 
@@ -129,32 +130,27 @@ onMounted(() => {
 }
 
 .cards-grid {
-  display: inline-flex;
-  gap: 20px;
-  flex-wrap: nowrap;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .stat-card {
   width: 200px;
-  height: 150px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tasks-wrapper-card {
-  border-radius: 18px;
-  display: inline-block;
-}
-
 .stat-item {
-  width: 200px;
-  height: 150px;
+  flex: 1;
+  min-width: 200px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #ffffff;
 }
 
 .stat-content {
@@ -173,20 +169,50 @@ onMounted(() => {
   font-weight: normal;
 }
 
-/* Task card styles - white background, colored content */
-.task-in-progress .stat-status,
-.task-in-progress .stat-count {
-  color: #667eea;
+/* Task card styles - colored background, white content */
+.task-sales {
+  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
 }
 
-.task-pending .stat-status,
-.task-pending .stat-count {
-  color: #f5576c;
+.task-sales .stat-status,
+.task-sales .stat-count {
+  color: #fff;
 }
 
-.task-completed .stat-status,
-.task-completed .stat-count {
-  color: #4facfe;
+.task-warehouse {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.task-warehouse .stat-status,
+.task-warehouse .stat-count {
+  color: #fff;
+}
+
+.task-product {
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+.task-product .stat-status,
+.task-product .stat-count {
+  color: #fff;
+}
+
+.task-member {
+  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+}
+
+.task-member .stat-status,
+.task-member .stat-count {
+  color: #fff;
+}
+
+.task-default {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+}
+
+.task-default .stat-status,
+.task-default .stat-count {
+  color: #fff;
 }
 
 /* Application card styles */
