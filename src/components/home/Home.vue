@@ -1,236 +1,126 @@
 <template>
   <div class="home-container">
-    
-    <!-- Task Cards -->
-    <div class="card-row">
-      <h3>Tasks</h3>
-      <div class="cards-grid">
-        <div 
-          v-for="task in taskStats" 
-          :key="task.status" 
-          class="stat-item"
-          :class="getTaskCardClass(task.status)"
-        >
-          <div class="stat-content">
-            <div class="stat-status">{{ task.status }}</div>
-            <div class="stat-count">{{ task.count }}</div>
-          </div>
+    <div class="cards-row">
+      <!-- Task Center -->
+      <el-card class="outer-card task-center-card" shadow="never" v-loading="loading">
+        <div class="icon-text">icon</div>
+        <h3>Task Center</h3>
+        <p class="subtitle">Quick access to tasks</p>
+        <div class="cards-grid">
+          <StatCard 
+            v-for="task in taskStats" 
+            :key="task.status" 
+            :status="task.status" 
+            :count="task.count"
+            :color="getColor(task.status)"
+          />
         </div>
-      </div>
-    </div>
-    
-    <!-- Application Cards -->
-    <div class="card-row">
-      <h3>Applications</h3>
-      <div class="cards-grid">
-        <el-card 
-          v-for="app in applicationStats" 
-          :key="app.status" 
-          class="stat-card"
-          :class="getAppCardClass(app.status)"
-        >
-          <div class="stat-content">
-            <div class="stat-status">{{ app.status }}</div>
-            <div class="stat-count">{{ app.count }}</div>
+      </el-card>
+      
+      <!-- Applications -->
+      <el-card class="outer-card apps-card" shadow="never" v-loading="loading">
+        <div class="header-row">
+          <div>
+            <div class="icon-text">icon</div>
+            <h3>Applications</h3>
+            <p class="subtitle">Overview of your applications</p>
           </div>
-        </el-card>
-      </div>
+          <el-select 
+            v-model="selectedDays" 
+            class="days-select" 
+            placeholder="Select days"
+          >
+            <el-option label="Last 30 days" :value="30" />
+            <el-option label="Last 60 days" :value="60" />
+            <el-option label="Last 90 days" :value="90" />
+          </el-select>
+        </div>
+        <div class="cards-grid">
+          <StatCard 
+            v-for="app in applicationStats" 
+            :key="app.status" 
+            :status="app.status" 
+            :count="app.count"
+            :color="getColor(app.status)"
+            class="narrow-card"
+          />
+        </div>
+      </el-card>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import StatCard from './StatCard.vue'
+import { getColor, fetchTaskStats, fetchApplicationStats } from './homeService.js'
 
 const taskStats = ref([])
 const applicationStats = ref([])
+const loading = ref(true)
+const selectedDays = ref(30)
 
-// Mock API to get task statistics
-const fetchTaskStats = async () => {
+onMounted(async () => {
+  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Mock API response
-    taskStats.value = [
-      { status: '销售总额:', count: 1310 },
-      { status: '仓库数量:', count: 1 },
-      { status: '商品数量:', count: 5 },
-      { status: '会员数量:', count: 1 }
-    ]
+    taskStats.value = await fetchTaskStats()
+    applicationStats.value = await fetchApplicationStats()
   } catch (error) {
-    console.error('Error fetching task stats:', error)
+    console.error('Failed to fetch stats:', error)
+  } finally {
+    loading.value = false
   }
-}
-
-// Mock API to get application statistics
-const fetchApplicationStats = async () => {
-  try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Mock API response
-    applicationStats.value = [
-      { status: 'In Progress', count: 23 },
-      { status: 'Ended', count: 12 }
-    ]
-  } catch (error) {
-    console.error('Error fetching application stats:', error)
-  }
-}
-
-// Get card class based on task status
-const getTaskCardClass = (status) => {
-  switch (status) {
-    case '销售总额:':
-      return 'task-sales'
-    case '仓库数量:':
-      return 'task-warehouse'
-    case '商品数量:':
-      return 'task-product'
-    case '会员数量:':
-      return 'task-member'
-    default:
-      return 'task-default'
-  }
-}
-
-// Get card class based on application status
-const getAppCardClass = (status) => {
-  switch (status) {
-    case 'In Progress':
-      return 'app-in-progress'
-    case 'Ended':
-      return 'app-ended'
-    default:
-      return ''
-  }
-}
-
-onMounted(() => {
-  fetchTaskStats()
-  fetchApplicationStats()
 })
 </script>
 
-<style scoped>
+<style>
 .home-container {
-  padding: 20px;
+  padding: 15px;
 }
 
-.card-row {
-  margin-bottom: 30px;
+.cards-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
 }
 
-.card-row h3 {
-  margin-bottom: 15px;
-  font-size: 16px;
+.outer-card {
+  flex: 1;
+  padding: 15px;
+  background: #fff;
+  border-radius: 18px;
+}
+
+.outer-card h3 {
+  margin-bottom: 5px;
+  font-size: 20px;
   font-weight: normal;
   color: #606266;
+}
+
+.subtitle {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #909399;
 }
 
 .cards-grid {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.stat-card {
-  width: 200px;
-  height: 100px;
+.narrow-card {
+  width: 160px;
+}
+
+.header-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-item {
-  flex: 1;
-  min-width: 200px;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-}
-
-.stat-content {
-  text-align: center;
-}
-
-.stat-status {
-  font-size: 26px;
-  font-weight: normal;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 10px;
-  color: #606266;
 }
 
-.stat-count {
-  font-size: 20px;
-  font-weight: normal;
-}
-
-/* Task card styles - colored background, white content */
-.task-sales {
-  background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-}
-
-.task-sales .stat-status,
-.task-sales .stat-count {
-  color: #fff;
-}
-
-.task-warehouse {
-  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-}
-
-.task-warehouse .stat-status,
-.task-warehouse .stat-count {
-  color: #fff;
-}
-
-.task-product {
-  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-}
-
-.task-product .stat-status,
-.task-product .stat-count {
-  color: #fff;
-}
-
-.task-member {
-  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
-}
-
-.task-member .stat-status,
-.task-member .stat-count {
-  color: #fff;
-}
-
-.task-default {
-  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-}
-
-.task-default .stat-status,
-.task-default .stat-count {
-  color: #fff;
-}
-
-/* Application card styles */
-.app-in-progress {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.app-in-progress .stat-status,
-.app-in-progress .stat-count {
-  color: #fff;
-}
-
-.app-ended {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-}
-
-.app-ended .stat-status,
-.app-ended .stat-count {
-  color: #fff;
+.days-select {
+  width: 140px;
 }
 </style>
