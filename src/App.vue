@@ -124,6 +124,11 @@ const currentComponent = computed(() => {
 const handleMenuSelect = (index) => {
   activeMenu.value = index
 }
+
+// 监听 View All 点击事件
+window.addEventListener('navigateToMenu', () => {
+  activeMenu.value = 'menu'
+})
 </script>
 
 <style>
