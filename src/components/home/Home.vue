@@ -19,18 +19,7 @@
         </el-card>
         
         <!-- Task Details Table -->
-        <el-card class="outer-card table-card" shadow="never" v-loading="loading">
-          <div class="table-header-row">
-            <span class="table-title">Recent Tasks</span>
-            <span class="view-all-link" @click="handleViewAll">View All</span>
-          </div>
-          <el-table :data="taskDetails" border style="width: 100%">
-            <el-table-column prop="taskName" label="Task Name" />
-            <el-table-column prop="functionUnitName" label="Function Unit Name" />
-            <el-table-column prop="initiator" label="Initiator" />
-            <el-table-column prop="createTime" label="Create Time" />
-          </el-table>
-        </el-card>
+        <TaskTable :taskDetails="taskDetails" :loading="loading" />
       </div>
       
       <!-- Applications -->
@@ -69,6 +58,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import StatCard from './StatCard.vue'
+import TaskTable from './TaskTable.vue'
 import { getColor, fetchTaskStats, fetchApplicationStats, fetchTaskDetails } from './homeService.js'
 
 const taskStats = ref([])
@@ -76,10 +66,6 @@ const applicationStats = ref([])
 const taskDetails = ref([])
 const loading = ref(true)
 const selectedDays = ref(30)
-
-const handleViewAll = () => {
-  window.dispatchEvent(new CustomEvent('navigateToMenu'))
-}
 
 onMounted(async () => {
   try {
